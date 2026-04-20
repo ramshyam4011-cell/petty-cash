@@ -254,7 +254,7 @@ export default function Expenses() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-2 md:p-6 space-y-4 md:space-y-6">
       {/* Tabs Row */}
       <div className="flex gap-2 mb-2 items-center border-b border-gray-100 pb-2">
           <button

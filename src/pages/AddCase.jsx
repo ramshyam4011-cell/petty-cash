@@ -195,7 +195,7 @@ export default function AddCase() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-2 md:p-6 space-y-4 md:space-y-6">
       {/* Header with Filters */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 md:gap-4 w-full">
         <div className="flex flex-col md:flex-row w-full gap-3">
