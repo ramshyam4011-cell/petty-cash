@@ -48,7 +48,7 @@ const Layout = () => {
           </div>
         </main>
 
-        <Footer />
+        <Footer isCollapsed={isCollapsed} />
 
       </div>
     </div>

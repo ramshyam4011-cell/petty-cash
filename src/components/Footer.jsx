@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Plus, TrendingDown, BookOpen } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
-const Footer = () => {
+const Footer = ({ isCollapsed }) => {
     const location = useLocation();
     const { user } = useAuthStore();
     
@@ -26,7 +26,7 @@ const Footer = () => {
     const menuItems = user?.role === 'ADMIN' ? adminMenuItems : employeeMenuItems;
 
     return (
-        <footer className="fixed bottom-0 left-0 lg:left-64 right-0 bg-white border-t border-slate-100 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] pb-[env(safe-area-inset-bottom)]">
+        <footer className={`fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] pb-[env(safe-area-inset-bottom)] transition-all duration-500 ${isCollapsed ? 'lg:left-20' : 'lg:left-64'}`}>
             <div className="max-w-7xl mx-auto">
                 {/* Mobile Navigation Icons */}
                 {!isSettingsPage && (
