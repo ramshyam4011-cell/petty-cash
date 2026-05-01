@@ -1,572 +1,423 @@
-import React, { useState, useMemo } from 'react';
-import { TrendingUp, TrendingDown, AlertCircle, Eye, ChevronLeft, ChevronRight, Search, Filter } from 'lucide-react';
-import {
-  formatDate,
-  formatCurrency,
-  getTotalBalance,
-  getPendingCount,
-  getTodaysExpenses,
-  getTodaysCredits,
-  isDateInRange
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
+} from 'recharts';
+import { 
+  Calendar, Wallet, Clock, AlertTriangle, TrendingUp, 
+  ChevronRight, Activity, Loader2
+} from 'lucide-react';
+import toast from 'react-hot-toast';
+import { 
+  formatCurrency, 
+  getTodayDate,
+  formatDateForInput
 } from '../utils/helpers';
-import {
-  getCredits,
-  getExpenses,
-  getExpenseById
-} from '../utils/storageManager';
+import { useAuthStore } from '../store/authStore';
+import { Link } from 'react-router-dom';
+
+const APPSCRIPT_URL = import.meta.env.VITE_APPSCRIPT_URL;
+const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
 
 export default function AdminDashboard() {
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [filters, setFilters] = useState({
-    dateFrom: '',
-    dateTo: '',
-    personName: '',
-    groupHead: '',
-    paymentMode: '',
-    searchQuery: ''
-  });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(15);
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState('');
+  const { user } = useAuthStore();
+  const [expenses, setExpenses] = useState([]);
+  const [pettyCash, setPettyCash] = useState([]);
+  const [fetching, setFetching] = useState(true);
 
-  const credits = getCredits();
-  const expenses = getExpenses();
+  const fetchDashboardData = async () => {
+    try {
+      setFetching(true);
+      
+      // Fetch both datasets in parallel
+      const [expRes, pcRes] = await Promise.all([
+        fetch(APPSCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'read' }) }),
+        fetch(APPSCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'readPettyCash' }) })
+      ]);
 
-  // Calculate statistics
-  const totalCredit = credits.reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
-  const totalExpense = expenses
-    .filter(e => e.status === 'APPROVED')
-    .reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
-  const availableBalance = totalCredit - totalExpense;
-  const pendingApprovals = getPendingCount(expenses);
-  const todaysExpense = getTodaysExpenses(expenses);
-  const todaysCredit = getTodaysCredits(credits);
-  const totalTransactions = credits.length + expenses.length;
+      const [expJson, pcJson] = await Promise.all([expRes.json(), pcRes.json()]);
 
-  const filteredTransactions = useMemo(() => {
-    const transactions = [];
-
-    // Add credits
-    credits.forEach(c => {
-      if (!filters.dateFrom || !filters.dateTo || 
-          isDateInRange(c.date, filters.dateFrom, filters.dateTo)) {
-        if (!filters.personName || c.personName.toLowerCase().includes(filters.personName.toLowerCase())) {
-          if (!filters.paymentMode || c.paymentMode === filters.paymentMode) {
-            transactions.push({
-              id: c.id,
-              sn: c.sn,
-              personName: c.personName,
-              date: c.date,
-              amount: parseFloat(c.amount),
-              mode: c.paymentMode,
-              type: 'CREDIT',
-              groupHead: 'N/A',
-              status: 'APPROVED',
-              image: c.image || '',
-              remarks: c.remarks || ''
-            });
-          }
-        }
+      if (expJson.success) {
+        const mappedExp = (expJson.data || []).map((e, idx) => {
+          const d = {};
+          Object.keys(e).forEach(k => { d[k.trim()] = e[k]; });
+          return {
+            id: d.SN || `exp-${idx}`,
+            sn: d.SN,
+            date: d.Date ? formatDateForInput(d.Date) : '-',
+            groupHead: d['Group Head'],
+            amount: parseFloat(d['Amount (INR)']) || 0,
+            remarks: d['Description / Reason'],
+            billUrl: d['Bill / Receipt'],
+            status: (d.Status || 'Pending').trim()
+          };
+        });
+        setExpenses(mappedExp);
       }
-    });
 
-    // Add expenses
-    expenses.forEach(e => {
-      if (!filters.dateFrom || !filters.dateTo || 
-          isDateInRange(e.date, filters.dateFrom, filters.dateTo)) {
-        if (!filters.personName || e.personName.toLowerCase().includes(filters.personName.toLowerCase())) {
-          if (!filters.groupHead || e.groupHead === filters.groupHead) {
-            if (!filters.paymentMode || e.paymentMode === filters.paymentMode) {
-              if (e.status === 'APPROVED') {
-                transactions.push({
-                  id: e.id,
-                  sn: e.sn,
-                  personName: e.personName,
-                  date: e.date,
-                  amount: -parseFloat(e.amount),
-                  mode: e.paymentMode,
-                  type: 'EXPENSE',
-                  groupHead: e.groupHead,
-                  status: e.status,
-                  image: e.image || '',
-                  remarks: e.remarks || ''
-                });
-              }
-            }
-          }
-        }
+      if (pcJson.success) {
+        const mappedPC = (pcJson.data || []).map((t, idx) => {
+          const d = {};
+          Object.keys(t).forEach(k => { d[k.trim()] = t[k]; });
+          return {
+            id: d.Timestamp || `pc-${idx}`,
+            type: d.Type,
+            amount: parseFloat(d.Amount) || 0,
+            date: d.Date
+          };
+        });
+        setPettyCash(mappedPC);
       }
-    });
 
-    // Apply Search Query
-    const filtered = transactions.filter(t => {
-      if (filters.searchQuery) {
-        const q = filters.searchQuery.toLowerCase();
-        return (
-          (t.personName && t.personName.toLowerCase().includes(q)) ||
-          (t.remarks && t.remarks.toLowerCase().includes(q)) ||
-          (t.amount && String(t.amount).toLowerCase().includes(q)) ||
-          (t.mode && t.mode.toLowerCase().includes(q)) ||
-          (t.groupHead && t.groupHead.toLowerCase().includes(q)) ||
-          (t.sn && String(t.sn).toLowerCase().includes(q))
-        );
-      }
-      return true;
-    });
-
-    // Sort by date descending
-    return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [filters, credits, expenses]);
-
-  // Paginated Transactions
-  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
-  const paginatedTransactions = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredTransactions.slice(start, start + itemsPerPage);
-  }, [filteredTransactions, currentPage, itemsPerPage]);
-
-  const handleDownloadCSV = () => {
-    const headers = ['SN', 'Date', 'Person', 'Type', 'Amount', 'Mode', 'Group', 'Remarks'];
-    const rows = filteredTransactions.map(t => [
-      t.sn,
-      formatDate(t.date),
-      t.personName,
-      t.type,
-      Math.abs(t.amount),
-      t.mode,
-      t.groupHead,
-      t.remarks || ''
-    ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `transactions-report-${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
+    } catch (err) {
+      console.error(err);
+      toast.error('Error connecting to sheets');
+    } finally {
+      setFetching(false);
+    }
   };
 
-  // Chart data - Expense by Group Head
-  const expenseByGroupHead = useMemo(() => {
-    const groupData = {};
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const stats = useMemo(() => {
+    const today = getTodayDate();
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Today's Expense (From Expense List - Approved)
+    const todaysApprovedExpenses = expenses.filter(e => e.date === today && e.status.toUpperCase() === 'APPROVED');
+    const todaysExpense = todaysApprovedExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const todaysEntries = todaysApprovedExpenses.length;
+
+    // Month's Expense (From Expense List - Approved)
+    const monthsApprovedExpenses = expenses.filter(e => {
+      if (!e.date || e.date === '-') return false;
+      const d = new Date(e.date);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear && e.status.toUpperCase() === 'APPROVED';
+    });
+    const monthsExpense = monthsApprovedExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const monthsEntries = monthsApprovedExpenses.length;
+
+    // Cash in Hand (From Petty Cash Ledger)
+    const totalReceived = pettyCash
+      .filter(t => t.type === 'Cash Received' || t.type === 'Cash Returned')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const totalSpent = pettyCash
+      .filter(t => t.type === 'Expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const cashInHand = totalReceived - totalSpent;
+
+    // Pending Approvals
+    const pendingApprovals = expenses.filter(e => e.status.toUpperCase() === 'PENDING').length;
+
+    // Missing Bills (Approved without receipt)
+    const missingBills = expenses.filter(e => e.status.toUpperCase() === 'APPROVED' && !e.billUrl).length;
+
+    return {
+      todaysExpense,
+      todaysEntries,
+      monthsExpense,
+      monthsEntries,
+      cashInHand,
+      pendingApprovals,
+      missingBills
+    };
+  }, [expenses, pettyCash]);
+
+  const chartData = useMemo(() => {
+    // Daily Expense (Last 7 Days)
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+      
+      const dayExpense = expenses
+        .filter(e => e.date === dateStr && e.status.toUpperCase() === 'APPROVED')
+        .reduce((sum, e) => sum + e.amount, 0);
+      
+      last7Days.push({ name: dayName, amount: dayExpense });
+    }
+
+    // Expense by Group (Approved)
+    const groupMap = {};
     expenses
-      .filter(e => e.status === 'APPROVED')
+      .filter(e => e.status.toUpperCase() === 'APPROVED')
       .forEach(e => {
-        if (!groupData[e.groupHead]) {
-          groupData[e.groupHead] = 0;
-        }
-        groupData[e.groupHead] += parseFloat(e.amount);
+        const group = e.groupHead || 'Other';
+        groupMap[group] = (groupMap[group] || 0) + e.amount;
       });
-    return groupData;
+    
+    const groupData = Object.entries(groupMap).map(([name, value]) => ({ name, value }));
+
+    return { daily: last7Days, groups: groupData };
   }, [expenses]);
 
-  const handleImageView = (image) => {
-    setSelectedImage(image);
-    setShowImageModal(true);
-  };
+  const recentExpenses = useMemo(() => {
+    return [...expenses]
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 5);
+  }, [expenses]);
+
+  if (fetching) {
+    return (
+      <div className="h-[60vh] flex flex-col items-center justify-center gap-4">
+        <Loader2 size={40} className="text-indigo-600 animate-spin" />
+        <p className="text-gray-500 font-medium animate-pulse">Syncing with Google Sheets...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-2 md:p-6 space-y-2 md:space-y-6">
-
-
-      {/* Header with Filters */}
-      {/* Header with Filters */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 lg:gap-4 w-full pb-2 border-b border-gray-100">
-        <div className="flex flex-col lg:flex-row w-full gap-2 items-center">
-          
-          {/* Search + Export Row (Mobile grouping) */}
-          <div className="flex items-center gap-2 w-full lg:w-auto lg:flex-[1.5]">
-            <div className="flex-1 w-full relative">
-              <Search className="absolute left-2.5 top-[9px] lg:top-[11px] text-gray-400" size={14} />
-              <input
-                type="text"
-                placeholder="Search details..."
-                value={filters.searchQuery}
-                onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
-                className="w-full bg-white border border-gray-300 rounded-lg lg:rounded pl-8 pr-2 py-1.5 focus:outline-none focus:border-indigo-500 text-xs md:text-sm h-[32px] md:h-[38px]"
-              />
-            </div>
-            {/* Mobile Filter Button */}
-            <button
-               onClick={() => setShowMobileFilters(!showMobileFilters)}
-               className={`lg:hidden flex items-center justify-center rounded-lg shadow-sm h-[32px] w-[32px] flex-shrink-0 transition ${showMobileFilters ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'}`}
-            >
-              <Filter size={14} />
-            </button>
-            {/* Mobile Export Button */}
-            <button
-               onClick={handleDownloadCSV}
-               className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center lg:hidden h-[32px] w-[32px] flex-shrink-0 shadow-sm transition"
-            >
-              <TrendingUp size={16} className="rotate-90" />
-            </button>
+    <div className="space-y-10 animate-in fade-in duration-1000">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-slate-200">
+        <div>
+          <div className="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-widest mb-1">
+            <Activity size={14} />
+            <span>Real-time Analytics</span>
           </div>
-
-          {/* Filters */}
-          <div className={`${showMobileFilters ? 'grid' : 'hidden'} lg:flex grid-cols-2 lg:flex-row gap-2 w-full lg:w-auto lg:flex-[4] items-center`}>
-             <input
-               type="text"
-               placeholder="From Date"
-               onFocus={(e) => (e.target.type = 'date')}
-               onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
-               value={filters.dateFrom}
-               onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-               className="w-full bg-white border border-gray-300 rounded-lg lg:rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500 text-[11px] md:text-sm h-[32px] md:h-[38px]"
-             />
-             <input
-               type="text"
-               placeholder="To Date"
-               onFocus={(e) => (e.target.type = 'date')}
-               onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
-               value={filters.dateTo}
-               onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-               className="w-full bg-white border border-gray-300 rounded-lg lg:rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500 text-[11px] md:text-sm h-[32px] md:h-[38px]"
-             />
-             <input
-               type="text"
-               value={filters.personName}
-               onChange={(e) => setFilters({ ...filters, personName: e.target.value })}
-               placeholder="Search person..."
-               className="w-full bg-white border border-gray-300 rounded-lg lg:rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500 text-[11px] md:text-sm h-[32px] md:h-[38px]"
-             />
-             <select
-               value={filters.groupHead}
-               onChange={(e) => setFilters({ ...filters, groupHead: e.target.value })}
-               className="w-full bg-white border border-gray-300 rounded-lg lg:rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500 text-[11px] md:text-sm h-[32px] md:h-[38px]"
-             >
-               <option value="">All Groups</option>
-               <option value="IT">IT</option>
-               <option value="HR">HR</option>
-               <option value="Finance">Finance</option>
-               <option value="Operations">Operations</option>
-               <option value="Marketing">Marketing</option>
-             </select>
-             <select
-               value={filters.paymentMode}
-               onChange={(e) => setFilters({ ...filters, paymentMode: e.target.value })}
-               className="w-full bg-white border border-gray-300 rounded-lg lg:rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500 text-[11px] md:text-sm h-[32px] md:h-[38px]"
-             >
-               <option value="">All Modes</option>
-               <option value="Cash">Cash</option>
-               <option value="Cheque">Cheque</option>
-               <option value="Bank Transfer">Bank Transfer</option>
-               <option value="Online">Online</option>
-             </select>
-          </div>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Dashboard</h1>
+          <p className="text-slate-500 mt-2 font-medium">
+            Welcome back, <span className="text-indigo-600 font-bold">{user?.name || 'Admin'}</span>. Here's a summary of your operations.
+          </p>
         </div>
-
-        {/* Desktop Export Button */}
-        <button
-           onClick={handleDownloadCSV}
-           className="hidden lg:flex bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 h-[38px] rounded-lg font-semibold items-center justify-center gap-2 transition shadow-sm w-full lg:w-auto flex-shrink-0"
-        >
-          <TrendingUp size={16} className="rotate-90" /> Export CSV
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={fetchDashboardData}
+            className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 transition-all active:scale-95 group"
+          >
+            <Activity size={18} className="text-indigo-600 group-hover:animate-pulse" />
+            <span className="text-sm font-bold text-slate-600 group-hover:text-indigo-600">Sync Sheets</span>
+          </button>
+        </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Credit */}
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">Total Credit</p>
-              <p className="text-2xl font-bold text-green-700 mt-2">
-                {formatCurrency(totalCredit)}
-              </p>
+      {/* Stats Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+        {/* Today's Expense */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-start justify-between">
+            <div className="bg-blue-500 p-3 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-200">
+              <Calendar className="text-white" size={24} />
             </div>
-            <TrendingUp className="text-green-600" size={32} />
+          </div>
+          <div className="mt-5 space-y-1">
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight">
+              {formatCurrency(stats.todaysExpense).replace('INR', '₹')}
+            </h3>
+            <p className="text-sm font-bold text-gray-500">Today's Expense</p>
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">{stats.todaysEntries} entries</p>
           </div>
         </div>
 
-        {/* Total Expense */}
-        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-6 border border-red-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">Total Expense</p>
-              <p className="text-2xl font-bold text-red-700 mt-2">
-                {formatCurrency(totalExpense)}
-              </p>
+        {/* Month's Expense */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-start justify-between">
+            <div className="bg-indigo-500 p-3 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-indigo-200">
+              <TrendingUp className="text-white" size={24} />
             </div>
-            <TrendingDown className="text-red-600" size={32} />
+          </div>
+          <div className="mt-5 space-y-1">
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight">
+              {formatCurrency(stats.monthsExpense).replace('INR', '₹')}
+            </h3>
+            <p className="text-sm font-bold text-gray-500">Month's Expense</p>
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">{stats.monthsEntries} entries</p>
           </div>
         </div>
 
-        {/* Available Balance */}
-        <div className={`rounded-lg p-6 border bg-gradient-to-br ${
-          availableBalance >= 0 
-            ? 'from-blue-50 to-blue-100 border-blue-200' 
-            : 'from-orange-50 to-orange-100 border-orange-200'
-        }`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">Available Balance</p>
-              <p className={`text-2xl font-bold mt-2 ${
-                availableBalance >= 0 ? 'text-blue-700' : 'text-orange-700'
-              }`}>
-                {formatCurrency(availableBalance)}
-              </p>
+        {/* Cash in Hand */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-start justify-between">
+            <div className="bg-emerald-500 p-3 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-emerald-200">
+              <Wallet className="text-white" size={24} />
             </div>
-            {availableBalance < 0 && <AlertCircle className="text-orange-600" size={32} />}
+          </div>
+          <div className="mt-5 space-y-1">
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight">
+              {formatCurrency(stats.cashInHand).replace('INR', '₹')}
+            </h3>
+            <p className="text-sm font-bold text-gray-500">Cash in Hand</p>
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Petty cash balance</p>
           </div>
         </div>
 
         {/* Pending Approvals */}
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">Pending Approvals</p>
-              <p className="text-2xl font-bold text-purple-700 mt-2">
-                {pendingApprovals}
-              </p>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-start justify-between">
+            <div className="bg-amber-500 p-3 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-amber-200">
+              <Clock className="text-white" size={24} />
             </div>
-            <AlertCircle className="text-purple-600" size={32} />
+          </div>
+          <div className="mt-5 space-y-1">
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight">{stats.pendingApprovals}</h3>
+            <p className="text-sm font-bold text-gray-500">Pending Approvals</p>
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Awaiting review</p>
+          </div>
+        </div>
+
+        {/* Missing Bills */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-start justify-between">
+            <div className="bg-rose-500 p-3 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-rose-200">
+              <AlertTriangle className="text-white" size={24} />
+            </div>
+          </div>
+          <div className="mt-5 space-y-1">
+            <h3 className="text-2xl font-black text-gray-900 tracking-tight">{stats.missingBills}</h3>
+            <p className="text-sm font-bold text-gray-500">Missing Bills</p>
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Without attachments</p>
           </div>
         </div>
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Expense by Group Head */}
-        <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Expense by Group Head</h3>
-          <div className="space-y-2">
-            {Object.entries(expenseByGroupHead).length > 0 ? (
-              Object.entries(expenseByGroupHead).map(([group, amount]) => {
-                const maxAmount = Math.max(...Object.values(expenseByGroupHead));
-                const percentage = (amount / maxAmount) * 100;
-                return (
-                  <div key={group}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-700 font-medium">{group}</span>
-                      <span className="text-gray-900 font-semibold">{formatCurrency(amount)}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-red-400 to-red-600 h-2 rounded-full"
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <p className="text-gray-500 text-center py-4">No expense data</p>
-            )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Daily Expense Chart */}
+        <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-8">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-lg font-extrabold text-gray-900 tracking-tight">Daily Expense (Last 7 Days)</h3>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Amount (₹)</span>
+            </div>
+          </div>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData.daily} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }}
+                  dy={10}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }}
+                />
+                <Tooltip 
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                />
+                <Bar 
+                  dataKey="amount" 
+                  fill="#3b82f6" 
+                  radius={[6, 6, 0, 0]} 
+                  barSize={40}
+                  animationDuration={1500}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Summary Stats */}
-        <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Summary Statistics</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-              <span className="text-gray-700">Total Credits</span>
-              <span className="font-semibold text-green-600">{credits.length}</span>
-            </div>
-            <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-              <span className="text-gray-700">Total Expenses</span>
-              <span className="font-semibold text-red-600">{expenses.length}</span>
-            </div>
-            <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-              <span className="text-gray-700">Approved Expenses</span>
-              <span className="font-semibold">{expenses.filter(e => e.status === 'APPROVED').length}</span>
-            </div>
-            <div className="flex justify-between items-center pt-3">
-              <span className="text-gray-700">Pending Expenses</span>
-              <span className="font-semibold text-orange-600">{pendingApprovals}</span>
-            </div>
+        {/* Expense by Group Chart */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-8 flex flex-col">
+          <h3 className="text-lg font-extrabold text-gray-900 tracking-tight mb-8">Expense by Group (Approved)</h3>
+          <div className="flex-1 min-h-[300px] w-full relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData.groups}
+                  cx="50%"
+                  cy="45%"
+                  innerRadius={65}
+                  outerRadius={100}
+                  paddingAngle={5}
+                  dataKey="value"
+                  animationDuration={1500}
+                >
+                  {chartData.groups.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend 
+                  verticalAlign="bottom" 
+                  iconType="circle"
+                  formatter={(value) => <span className="text-[12px] font-bold text-gray-600 ml-1">{value}</span>}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* Transaction Details Report */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
-        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-          <h3 className="text-lg font-bold text-gray-900">Transaction Details Report</h3>
-          <span className="text-sm text-gray-500 font-medium whitespace-nowrap">
-            Showing {paginatedTransactions.length} of {filteredTransactions.length}
-          </span>
+      {/* Recent Expenses Table */}
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between bg-white">
+          <h3 className="text-lg font-extrabold text-gray-900 tracking-tight">Recent Expenses</h3>
+          <Link 
+            to="/expense-list" 
+            className="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 group"
+          >
+            View All <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
-
-        {/* Desktop Table View */}
-        <div className="hidden md:block overflow-x-auto overflow-y-auto max-h-[450px]">
-          <table className="w-full text-left border-collapse relative">
-            <thead className="bg-gray-50 text-gray-700 text-[10px] font-bold uppercase tracking-wider border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-              <tr>
-                <th className="px-4 py-2">SN</th>
-                <th className="px-4 py-2 text-center">Date</th>
-                <th className="px-4 py-2">Person</th>
-                <th className="px-4 py-2 text-center">Type</th>
-                <th className="px-4 py-2 text-right">Amount</th>
-                <th className="px-4 py-2 text-center">Mode</th>
-                <th className="px-4 py-2">Group</th>
-                <th className="px-4 py-2 text-center">Receipt</th>
-                <th className="px-4 py-2">Remarks</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-gray-50/50">
+                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Voucher</th>
+                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Date</th>
+                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Description</th>
+                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest text-right">Amount</th>
+                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {paginatedTransactions.map((t, idx) => (
-                <tr key={t.id || idx} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-2 text-sm font-semibold text-gray-900">{t.sn}</td>
-                  <td className="px-4 py-2 text-sm text-gray-600 text-center">{formatDate(t.date)}</td>
-                  <td className="px-4 py-2 text-sm font-bold text-gray-800 uppercase tracking-tight">{t.personName}</td>
-                  <td className="px-4 py-2 text-center">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                      t.type === 'CREDIT' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {t.type}
-                    </span>
+            <tbody className="divide-y divide-gray-50">
+              {recentExpenses.length > 0 ? (
+                recentExpenses.map((expense) => (
+                  <tr key={expense.id} className="hover:bg-gray-50/80 transition-colors group">
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-gray-700 tracking-tight">{expense.sn}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-gray-500">{expense.date}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-semibold text-gray-900 line-clamp-1">{expense.remarks || 'No description'}</p>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <span className="text-base font-black text-gray-900">
+                        {formatCurrency(expense.amount).replace('INR', '₹')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-center">
+                        <span className={`px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider ${
+                          expense.status.toUpperCase() === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
+                          expense.status.toUpperCase() === 'REJECTED' ? 'bg-rose-100 text-rose-700' :
+                          'bg-amber-100 text-amber-700'
+                        }`}>
+                          {expense.status}
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center gap-2 text-gray-400">
+                      <Activity size={32} />
+                      <p className="text-sm font-medium">No recent expenses found</p>
+                    </div>
                   </td>
-                  <td className={`px-4 py-2 text-sm font-black text-right ${
-                    t.type === 'CREDIT' ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {t.type === 'CREDIT' ? '+' : '-'}{formatCurrency(Math.abs(t.amount))}
-                  </td>
-                  <td className="px-4 py-2 text-sm text-center">
-                    <span className="bg-gray-100 px-2 py-1 rounded-md text-gray-600 font-medium">{t.mode}</span>
-                  </td>
-                  <td className="px-4 py-2 text-sm font-medium text-gray-600 uppercase">{t.groupHead}</td>
-                  <td className="px-4 py-2 text-center">
-                    {t.image ? (
-                      <button 
-                        onClick={() => handleImageView(t.image)}
-                        className="text-sky-600 hover:text-sky-800 transition"
-                      >
-                        <Eye size={18} className="inline" />
-                      </button>
-                    ) : (
-                      <span className="text-gray-300">-</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2 text-sm text-gray-500 max-w-xs truncate">{t.remarks || '-'}</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
-
-        {/* Mobile Card View */}
-        <div className="md:hidden flex flex-col gap-2 p-2 overflow-y-auto h-[calc(100vh-210px)] min-h-[250px] bg-slate-50/50 pb-2">
-          {paginatedTransactions.map((t, idx) => (
-            <div key={t.id || idx} className="bg-white rounded-xl border border-indigo-50 shadow-[0_2px_10px_-4px_rgba(79,70,229,0.1)] p-2.5 relative flex flex-col gap-2 transition-all">
-              <div className="flex justify-between items-start mb-0.5">
-                <div>
-                  <span className="text-[9px] font-medium text-gray-400 uppercase tracking-widest block"># {t.sn}</span>
-                  <p className="font-medium text-gray-900 text-[13px] uppercase tracking-tight leading-tight">{t.personName}</p>
-                </div>
-                <span className={`px-1.5 py-0.5 rounded text-[8px] font-medium uppercase tracking-widest ${
-                  t.type === 'CREDIT' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                }`}>
-                  {t.type}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5 mt-1">
-                <div>
-                  <p className="text-[9px] font-medium text-gray-400 uppercase">Date</p>
-                  <p className="text-[11px] font-normal text-gray-700 flex items-center gap-1">
-                    {formatDate(t.date)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[9px] font-medium text-gray-400 uppercase text-right">Amount</p>
-                  <p className={`text-[13px] font-medium text-right tracking-tight ${
-                    t.type === 'CREDIT' ? 'text-emerald-600' : 'text-rose-600'
-                  }`}>
-                    {t.type === 'CREDIT' ? '+' : '-'}{formatCurrency(Math.abs(t.amount))}
-                  </p>
-                </div>
-                <div className="col-span-2 flex justify-between items-center bg-gray-50 p-1.5 rounded-lg border border-gray-100 mt-0.5">
-                  <p className="text-[9px] font-medium text-gray-500 uppercase">{t.mode} • {t.groupHead}</p>
-                  {t.image && (
-                    <button 
-                      onClick={() => handleImageView(t.image)}
-                      className="text-indigo-600 text-[10px] font-medium flex items-center gap-1 bg-indigo-50/80 px-2 py-1 rounded transition-colors hover:bg-indigo-100"
-                    >
-                      <Eye size={12} /> Receipt
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredTransactions.length === 0 && (
-          <div className="p-12 text-center text-gray-500 italic">
-            No transactions found matching your criteria.
-          </div>
-        )}
-
-        {/* Pagination Controls */}
-        <div className="p-2 md:p-3 border-t border-gray-100 bg-gray-50 flex flex-col items-center justify-between gap-2 lg:flex-row rounded-b-lg pb-2 md:pb-3">
-          <div className="flex w-full lg:w-auto justify-between items-center text-[10px] md:text-sm gap-2">
-            <div className="text-gray-600 flex items-center flex-shrink-0">
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="bg-white border border-gray-300 rounded-md px-1 py-1 text-[10px] md:text-xs focus:outline-none focus:border-indigo-500 shadow-sm font-medium"
-              >
-                {[10, 15, 20, 50, 100].map(val => (
-                  <option key={val} value={val}>{val}</option>
-                ))}
-              </select>
-              <span className="text-[10px] md:text-[11px] font-medium text-gray-500 ml-1.5 whitespace-nowrap">
-                entries
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1.5 text-gray-700">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="p-1 border border-gray-300 rounded-md bg-white disabled:opacity-50 hover:bg-gray-50 transition shadow-sm text-indigo-600"
-              >
-                <ChevronLeft size={16} strokeWidth={2.5} />
-              </button>
-              <div className="text-[10px] md:text-[10px] font-medium min-w-[50px] text-center text-gray-500">
-                Pg {currentPage}/{totalPages || 1}
-              </div>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages || totalPages === 0}
-                className="p-1 border border-gray-300 rounded-md bg-white disabled:opacity-50 hover:bg-gray-50 transition shadow-sm text-indigo-600"
-              >
-                <ChevronRight size={16} strokeWidth={2.5} />
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
-
-
-
-      {/* Image Modal */}
-      {showImageModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Image Preview</h3>
-              <button
-                onClick={() => setShowImageModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            <img src={selectedImage} alt="Transaction" className="w-full rounded" />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -61,6 +61,15 @@ body {
   animation: soft-float 4s ease-in-out infinite;
 }
 
+@keyframes highlight-fade {
+  0% { background-color: rgba(37, 99, 235, 0.2); transform: scale(1.02); }
+  100% { background-color: transparent; transform: scale(1); }
+}
+
+.animate-highlight {
+  animation: highlight-fade 2s ease-out forwards;
+}
+
 /* Standardized Card Style */
 .hr-card {
   @apply bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300;
@@ -80,7 +89,7 @@ body {
 
 /* Global Table Compaction */
 table th, table td {
-  padding: 0.5rem 1rem !important; /* Overriding common utility classes like px-6 py-4 */
+  padding: 0.75rem 1rem;
 }
 
 /* Redefining some tailwind utility defaults if needed directly */
@@ -97,5 +106,5 @@ table th, table td {
 }
 
 .p-4 {
-  padding: 0.75rem !important;
+  padding: 1rem;
 }

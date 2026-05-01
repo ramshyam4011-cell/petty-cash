@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
-import { getUsers } from '../utils/storageManager';
 import botivateLogoB from '../Assets/logo.png';
+const APPSCRIPT_URL = import.meta.env.VITE_APPSCRIPT_URL;
 
 const Login = () => {
   const [id, setId] = useState('');
@@ -19,9 +19,29 @@ const Login = () => {
     setSubmitting(true);
 
     try {
-      const users = getUsers();
+      // Fetch users from Google Sheets 'setting' sheet
+      const res = await fetch(APPSCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'readSetting' })
+      });
+      const json = await res.json();
+      
+      if (!json.success) {
+        throw new Error(json.error || 'Failed to fetch users');
+      }
+
+      const users = (json.data || []).map(row => ({
+        name: row['user'] || '',
+        id: row['user name'] || '',
+        password: row['password'] || '',
+        role: (row['role'] || 'USER').trim().toUpperCase(),
+        branch: row['branch'] || '',
+        department: row['department'] || '',
+        pageAccess: row['Page access'] ? row['Page access'].split(',').map(s => s.trim()) : []
+      }));
+
       const matchedUser = users.find(
-        (u) => u.id === id && u.password === password
+        (u) => u.id === id && String(u.password) === password
       );
 
       if (!matchedUser) {
@@ -35,7 +55,7 @@ const Login = () => {
       navigate("/", { replace: true });
     } catch (err) {
       console.error(err);
-      toast.error('Login error');
+      toast.error('Login error: ' + (err.message || 'Check your internet connection'));
     } finally {
       setSubmitting(false);
     }
@@ -45,15 +65,7 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleDemoCredential = (userId) => {
-    if (userId === 'admin') {
-      setId('admin');
-      setPassword('admin123');
-    } else if (userId === 'user') {
-      setId('user');
-      setPassword('user123');
-    }
-  };
+
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-gradient-to-br from-sky-50 to-sky-100">
@@ -152,38 +164,7 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500 font-semibold">Demo Credentials</span>
-            </div>
-          </div>
 
-          {/* Demo Credentials */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-            <p className="text-xs font-semibold text-gray-500 text-center mb-3 uppercase tracking-wider">Quick Login Options</p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => handleDemoCredential('admin')}
-                className="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 hover:border-sky-500 hover:shadow-md hover:bg-sky-50 rounded-lg transition-all group"
-              >
-                <span className="font-bold text-gray-800 text-sm group-hover:text-sky-700">Admin</span>
-                <span className="text-[10px] text-gray-500 font-mono mt-1">ID: admin</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoCredential('user')}
-                className="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 hover:border-sky-500 hover:shadow-md hover:bg-sky-50 rounded-lg transition-all group"
-              >
-                <span className="font-bold text-gray-800 text-sm group-hover:text-sky-700">User</span>
-                <span className="text-[10px] text-gray-500 font-mono mt-1">ID: user</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 

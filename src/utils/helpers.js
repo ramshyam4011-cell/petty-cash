@@ -139,3 +139,15 @@ export const createLedgerEntry = (id, personName, type, amount, date, referenceI
     timestamp: new Date().toISOString()
   };
 };
+
+// Generate Native Google Sheets Timestamp
+export const getGoogleSheetTimestamp = () => {
+  const now = new Date();
+  const m = now.getMonth() + 1;
+  const d = now.getDate();
+  const y = now.getFullYear();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  return `${m}/${d}/${y} ${hh}:${mm}:${ss}`;
+};
