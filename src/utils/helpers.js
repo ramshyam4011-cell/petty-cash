@@ -151,3 +151,19 @@ export const getGoogleSheetTimestamp = () => {
   const ss = String(now.getSeconds()).padStart(2, '0');
   return `${m}/${d}/${y} ${hh}:${mm}:${ss}`;
 };
+
+// Format date and time for professional display (Audit trails, etc.)
+export const formatDateTime = (dateStr) => {
+  if (!dateStr || dateStr === '-') return '-';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+};

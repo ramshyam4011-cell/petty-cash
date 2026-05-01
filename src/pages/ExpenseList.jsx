@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Search, Plus, Calendar, Check, AlertTriangle, Eye, Trash2, AlertCircle } from 'lucide-react';
+import { Search, Plus, Calendar, Check, AlertTriangle, Eye, Trash2, AlertCircle, FileText, X } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { formatCurrency, formatDateForInput } from '../utils/helpers';
+import { formatCurrency, formatDateForInput, formatDateTime } from '../utils/helpers';
 import { Link } from 'react-router-dom';
 
 const APPSCRIPT_URL = import.meta.env.VITE_APPSCRIPT_URL;
@@ -134,304 +134,322 @@ export default function ExpenseList() {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-2 md:p-8 space-y-6 md:space-y-10 animate-in fade-in duration-1000">
       
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Expense List</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{filteredExpenses.length} of {expenses.length} entries</p>
+          <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-600 font-bold text-[10px] uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full mb-3 shadow-sm">
+            <FileText size={12} />
+            <span>Master Ledger</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">Expense List</h1>
+          <p className="text-slate-500 font-medium italic">Viewing {filteredExpenses.length} of {expenses.length} total entries</p>
         </div>
-        <Link to="/add-expense" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition shadow-sm whitespace-nowrap text-sm">
-          <Plus size={16} strokeWidth={2.5} /> Add Expense
+
+        <Link 
+          to="/add-expense" 
+          className="w-full md:w-auto inline-flex items-center justify-center gap-2.5 bg-slate-900 text-white px-6 py-4 rounded-2xl text-sm font-black shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 group whitespace-nowrap"
+        >
+          <Plus size={18} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-300" />
+          Create New Entry
         </Link>
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-white border border-gray-200 rounded-xl p-3 flex flex-col lg:flex-row gap-3 items-center shadow-sm">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-          <input 
-            type="text" 
-            placeholder="Search voucher, description, vendor..." 
-            value={filters.search}
-            onChange={(e) => setFilters({...filters, search: e.target.value})}
-            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-          />
-        </div>
-        
-        <div className="flex flex-wrap lg:flex-nowrap gap-3 w-full lg:w-auto">
-          <select 
-            value={filters.status}
-            onChange={(e) => setFilters({...filters, status: e.target.value})}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 flex-1 min-w-[120px]"
-          >
-            <option value="All">All</option>
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Hold">Hold</option>
-          </select>
+      {/* Industrial Grade Filter Panel */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden transition-all duration-500 hover:shadow-[0_8px_40px_rgb(0,0,0,0.06)] animate-in fade-in zoom-in duration-700">
+        <div className="px-5 py-5 md:px-6">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col lg:flex-row gap-4 items-end">
+              {/* Global Search */}
+              <div className="w-full lg:flex-1 space-y-2">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Universal Search</span>
+                <div className="relative group">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
+                  <input 
+                    type="text" 
+                    placeholder="Search voucher, description, vendor..." 
+                    value={filters.search}
+                    onChange={(e) => setFilters({...filters, search: e.target.value})}
+                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-300 shadow-sm"
+                  />
+                </div>
+              </div>
 
-          <div className="relative flex-1 min-w-[140px]">
-            <input 
-              type="date" 
-              value={filters.fromDate}
-              onChange={(e) => setFilters({...filters, fromDate: e.target.value})}
-              className="w-full border border-gray-300 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 appearance-none"
-            />
-            <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+              {/* Status Focus */}
+              <div className="w-full lg:w-48 space-y-2">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Status Focus</span>
+                <select 
+                  value={filters.status}
+                  onChange={(e) => setFilters({...filters, status: e.target.value})}
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all appearance-none cursor-pointer shadow-sm"
+                >
+                  <option value="All">All Status</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Hold">Hold</option>
+                </select>
+              </div>
+
+              {/* Action: Clear */}
+              <button 
+                onClick={handleClearFilters}
+                className="w-full lg:w-auto px-6 py-4 bg-white border border-slate-200 text-slate-500 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-slate-50 hover:text-rose-500 transition-all active:scale-95 whitespace-nowrap shadow-sm"
+              >
+                Clear Filters
+              </button>
+            </div>
+
+            {/* Date Horizons */}
+            <div className="flex flex-col sm:flex-row gap-4">
+               <div className="flex-1 space-y-2">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Start Horizon</span>
+                  <div className="relative group">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
+                    <input 
+                      type="date" 
+                      value={filters.fromDate}
+                      onChange={(e) => setFilters({...filters, fromDate: e.target.value})}
+                      className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm"
+                    />
+                  </div>
+               </div>
+               <div className="flex-1 space-y-2">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">End Horizon</span>
+                  <div className="relative group">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
+                    <input 
+                      type="date" 
+                      value={filters.toDate}
+                      onChange={(e) => setFilters({...filters, toDate: e.target.value})}
+                      className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm"
+                    />
+                  </div>
+               </div>
+            </div>
           </div>
-
-          <div className="relative flex-1 min-w-[140px]">
-            <input 
-              type="date" 
-              value={filters.toDate}
-              onChange={(e) => setFilters({...filters, toDate: e.target.value})}
-              className="w-full border border-gray-300 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 appearance-none"
-            />
-            <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
-          </div>
-
-          <button 
-            onClick={handleClearFilters}
-            className="border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap"
-          >
-            Clear
-          </button>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50/50">
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Voucher</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">By</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Amount</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Mode</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Bill</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Status</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {fetching ? (
-                <tr>
-                  <td colSpan="10" className="px-5 py-12 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="text-gray-500 mt-3 text-sm">Loading expenses...</p>
-                  </td>
-                </tr>
-              ) : filteredExpenses.length === 0 ? (
-                <tr>
-                  <td colSpan="10" className="px-5 py-12 text-center text-gray-500 text-sm">
-                    No entries found matching your criteria.
-                  </td>
-                </tr>
-              ) : (
-                filteredExpenses.map((expense) => (
-                  <tr key={expense.id} className="hover:bg-gray-50/50 transition-colors group">
-                    {/* VOUCHER */}
-                    <td className="px-5 py-4">
-                      <span className="text-[13px] font-mono text-gray-500">{expense.sn}</span>
-                    </td>
-                    
-                    {/* DATE */}
-                    <td className="px-5 py-4">
-                      <span className="text-[13px] text-gray-600">{expense.date}</span>
-                    </td>
-                    
-                    {/* CATEGORY */}
-                    <td className="px-5 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-[13px] font-semibold text-gray-900">{expense.groupHead}</span>
-                        <span className="text-[12px] text-gray-400">{expense.subHead || expense.expenseHead}</span>
+      {/* Main Content Area */}
+      <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden min-h-[400px] flex flex-col">
+        {fetching ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-[3px] border-indigo-600 border-t-transparent mx-auto"></div>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Syncing Records...</p>
+          </div>
+        ) : filteredExpenses.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-20 bg-slate-50/50">
+            <div className="p-6 bg-white rounded-full shadow-sm mb-4">
+               <AlertTriangle className="text-amber-400" size={48} />
+            </div>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No records match your criteria</p>
+          </div>
+        ) : (
+          <>
+            {/* Mobile View (Hidden on Desktop) */}
+            <div className="md:hidden flex flex-col divide-y divide-slate-100">
+              {filteredExpenses.map((expense) => (
+                <div key={expense.id} className="p-4 flex flex-col gap-4">
+                   <div className="flex justify-between items-start">
+                      <div className="flex flex-col gap-1.5">
+                         <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-black border border-indigo-100 uppercase tracking-widest w-fit">{expense.sn}</span>
+                         <h3 className="font-black text-slate-900 text-lg leading-tight uppercase">{expense.remarks || 'No Description'}</h3>
+                         <span className="text-[11px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg w-fit uppercase tracking-wider">{expense.groupHead}</span>
                       </div>
-                    </td>
-                    
-                    {/* DESCRIPTION */}
-                    <td className="px-5 py-4 max-w-[200px]">
-                      <div className="flex flex-col">
-                        <span className="text-[13px] font-medium text-gray-900 truncate" title={expense.remarks}>{expense.remarks || '-'}</span>
-                        <span className="text-[12px] text-gray-400 truncate" title={expense.paidTo}>{expense.paidTo}</span>
+                      <div className="text-right">
+                         <p className="text-xl font-black text-slate-900">{formatCurrency(expense.amount).replace('INR', '₹')}</p>
+                         <div className="mt-1">{getStatusPill(expense.status)}</div>
                       </div>
-                      {expense.approvalRemarks && (
-                        <div className="mt-1 text-[11px] text-rose-600 flex items-start gap-1">
-                          <AlertCircle size={12} className="mt-[2px] flex-shrink-0" />
-                          <span className="line-clamp-2" title={expense.approvalRemarks}>{expense.approvalRemarks}</span>
-                        </div>
-                      )}
-                    </td>
-                    
-                    {/* BY */}
-                    <td className="px-5 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-[13px] text-gray-500">{expense.user || user?.name || 'Admin'}</span>
-                        <span className="text-[12px] text-gray-400">{expense.branch || 'HO'}</span>
+                   </div>
+
+                   <div className="bg-slate-50 p-3 rounded-2xl space-y-2">
+                      <div className="flex justify-between text-[11px] font-bold">
+                         <span className="text-slate-400 uppercase">Paid To</span>
+                         <span className="text-slate-600">{expense.date}</span>
                       </div>
-                    </td>
-                    
-                    {/* AMOUNT */}
-                    <td className="px-5 py-4 text-right">
-                      <span className="text-[14px] font-bold text-gray-900">{formatCurrency(expense.amount)}</span>
-                    </td>
-                    
-                    {/* MODE */}
-                    <td className="px-5 py-4 text-center">
-                      <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md text-[11px] font-medium border border-gray-200 uppercase tracking-wide">
-                        {expense.paymentMode || 'CASH'}
-                      </span>
-                    </td>
-                    
-                    {/* BILL */}
-                    <td className="px-5 py-4 text-center">
-                      {expense.billUrl ? (
-                        <Check size={16} strokeWidth={3} className="text-emerald-500 mx-auto" />
-                      ) : (
-                        <AlertTriangle size={16} strokeWidth={2.5} className="text-amber-500 mx-auto" />
-                      )}
-                    </td>
-                    
-                    {/* STATUS */}
-                    <td className="px-5 py-4 text-center">
-                      {getStatusPill(expense.status)}
-                    </td>
-                    
-                    {/* ACTIONS */}
-                    <td className="px-5 py-4 text-center">
-                      <div className="flex items-center justify-center gap-3">
-                        <button 
-                          onClick={() => openViewModal(expense)}
-                          className="text-blue-500 hover:text-blue-700 transition"
-                          title="View Details"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(expense.sn)}
-                          className="text-rose-400 hover:text-rose-600 transition"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+                      <p className="text-xs text-slate-700 font-black uppercase tracking-tight">{expense.paidTo}</p>
+                   </div>
+
+                   <div className="flex gap-2">
+                      <button onClick={() => openViewModal(expense)} className="flex-1 flex items-center justify-center gap-2 bg-slate-100 text-slate-600 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all active:scale-95 border border-slate-200">
+                         <Eye size={16} strokeWidth={3} /> Details
+                      </button>
+                      <button onClick={() => handleDelete(expense.sn)} className="p-3 bg-rose-50 text-rose-600 rounded-2xl font-black transition-all active:scale-95 border border-rose-100">
+                         <Trash2 size={20} strokeWidth={3} />
+                      </button>
+                   </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View (Hidden on Mobile) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/50">
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Voucher</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Recipient</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Amount</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {filteredExpenses.map((expense) => (
+                    <tr key={expense.id} className="hover:bg-slate-50/50 transition-colors group">
+                      <td className="px-6 py-5">
+                        <span className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-[12px] font-black border border-indigo-100 shadow-sm">{expense.sn}</span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="text-[13px] font-bold text-slate-600">{expense.date}</span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex flex-col">
+                          <span className="text-[13px] font-black text-slate-900 uppercase tracking-tight">{expense.groupHead}</span>
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{expense.subHead || expense.expenseHead}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 max-w-[280px]">
+                        <div className="flex flex-col">
+                          <span className="text-[13px] font-bold text-slate-900 truncate uppercase" title={expense.remarks}>{expense.remarks || 'No Description'}</span>
+                          <span className="text-[11px] font-bold text-indigo-500 uppercase tracking-wider truncate" title={expense.paidTo}>{expense.paidTo}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <div className="flex flex-col items-end">
+                           <span className="text-base font-black text-slate-900 tracking-tight">{formatCurrency(expense.amount).replace('INR', '₹')}</span>
+                           <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{expense.paymentMode}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 text-center">
+                        {getStatusPill(expense.status)}
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex justify-center gap-3">
+                          <button onClick={() => openViewModal(expense)} className="p-2.5 bg-slate-100 text-slate-600 hover:bg-slate-900 hover:text-white rounded-xl transition-all shadow-sm active:scale-95" title="View Details">
+                            <Eye size={18} strokeWidth={3} />
+                          </button>
+                          <button onClick={() => handleDelete(expense.sn)} className="p-2.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all shadow-sm active:scale-95" title="Delete">
+                            <Trash2 size={18} strokeWidth={3} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
       
       {/* View Expense Modal */}
       {isViewModalOpen && selectedExpense && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 lg:left-64 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden border border-white/20 animate-in zoom-in-95 duration-300">
             
             {/* Modal Header */}
-            <div className="px-6 py-5 border-b border-gray-100 flex items-start justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 tracking-tight">{selectedExpense.sn}</h2>
-                <p className="text-sm text-gray-500 mt-0.5">{selectedExpense.date}</p>
+            <div className="px-8 py-7 border-b border-slate-100 flex items-start justify-between bg-white relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-600"></div>
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-3 mb-2.5">
+                   <span className="px-3 py-1.5 bg-indigo-600 text-white rounded-xl text-[12px] font-black shadow-lg shadow-indigo-100 uppercase tracking-widest">{selectedExpense.sn}</span>
+                   {getStatusPill(selectedExpense.status)}
+                </div>
+                <div className="flex items-center gap-2 text-slate-400">
+                  <Calendar size={14} className="text-indigo-400" />
+                  <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]">Submission Date:</span>
+                  <span className="text-[13px] font-black text-slate-900 tracking-tight">{selectedExpense.date}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-4">
-                {getStatusPill(selectedExpense.status)}
-                <button 
-                  onClick={closeViewModal}
-                  className="text-gray-400 hover:text-gray-600 transition p-1"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                </button>
-              </div>
+              <button 
+                onClick={closeViewModal}
+                className="text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all p-2.5 rounded-2xl border border-slate-100 shadow-sm bg-white"
+              >
+                <X size={22} strokeWidth={3} />
+              </button>
             </div>
 
             {/* Modal Body */}
-            <div className="px-6 py-4 space-y-3.5">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">Group Head</span>
-                <span className="text-sm font-semibold text-gray-900 text-right">{selectedExpense.groupHead || '-'}</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">Expense Head</span>
-                <span className="text-sm font-semibold text-gray-900 text-right">{selectedExpense.expenseHead || '-'}</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">Sub Head</span>
-                <span className="text-sm font-semibold text-gray-900 text-right">{selectedExpense.subHead || '-'}</span>
-              </div>
-              
-              <div className="flex justify-between items-center pt-1">
-                <span className="text-sm text-gray-500">Amount</span>
-                <span className="text-sm font-bold text-gray-900 text-right">{formatCurrency(selectedExpense.amount)}</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">Payment Mode</span>
-                <span className="text-sm font-semibold text-gray-900 text-right">{selectedExpense.paymentMode || 'Cash'}</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">Paid To</span>
-                <span className="text-sm font-semibold text-gray-900 text-right">{selectedExpense.paidTo || '-'}</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">Branch</span>
-                <span className="text-sm font-semibold text-gray-900 text-right">{selectedExpense.branch || 'HO'}</span>
-              </div>
-              
-              <div className="flex justify-between items-start pt-1 gap-4">
-                <span className="text-sm text-gray-500 whitespace-nowrap">Description</span>
-                <span className="text-sm font-semibold text-gray-900 text-right">{selectedExpense.remarks || '-'}</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">Bill Attached</span>
-                {selectedExpense.billUrl ? (
-                  <a href={selectedExpense.billUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline text-right">
-                    Yes (View)
-                  </a>
-                ) : (
-                  <span className="text-sm font-semibold text-gray-900 text-right">No</span>
-                )}
-              </div>
-              
-              <div className="flex justify-between items-center pt-2">
-                <span className="text-sm text-gray-500">Entered By</span>
-                <span className="text-sm font-semibold text-gray-900 text-right">{selectedExpense.user || user?.name || 'Admin'}</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">Actioned By</span>
-                <span className="text-sm font-semibold text-gray-900 text-right">
-                  {selectedExpense.status === 'PENDING' ? '-' : (user?.name || 'Admin')}
-                </span>
+            <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              <div className="grid grid-cols-2 gap-8">
+                 <div className="space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Group Head</span>
+                    <p className="text-sm font-black text-slate-900 uppercase leading-tight">{selectedExpense.groupHead || '-'}</p>
+                 </div>
+                 <div className="space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Expense Head</span>
+                    <p className="text-sm font-black text-slate-900 uppercase leading-tight">{selectedExpense.expenseHead || '-'}</p>
+                 </div>
+                 <div className="space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sub Head</span>
+                    <p className="text-sm font-black text-slate-900 uppercase leading-tight">{selectedExpense.subHead || '-'}</p>
+                 </div>
+                 <div className="space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Mode</span>
+                    <p className="text-sm font-black text-slate-900 uppercase leading-tight">{selectedExpense.paymentMode || 'Cash'}</p>
+                 </div>
               </div>
 
-              {selectedExpense.planned && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Planned Date</span>
-                  <span className="text-sm font-semibold text-indigo-600 text-right">{selectedExpense.planned}</span>
-                </div>
-              )}
+              <div className="p-6 bg-slate-50 rounded-3xl space-y-4">
+                 <div className="flex justify-between items-center border-b border-slate-200/50 pb-4">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Amount</span>
+                    <span className="text-2xl font-black text-indigo-600">{formatCurrency(selectedExpense.amount).replace('INR', '₹')}</span>
+                 </div>
+                 <div className="space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description / Reason</span>
+                    <p className="text-sm font-bold text-slate-700 leading-relaxed">{selectedExpense.remarks || 'No detailed reason provided.'}</p>
+                 </div>
+              </div>
 
-              {selectedExpense.approvalTimestamp && (
-                <div className="flex justify-between items-center pt-1">
-                  <span className="text-sm text-gray-500">Action Timestamp</span>
-                  <span className="text-sm font-semibold text-emerald-600 text-right">{selectedExpense.approvalTimestamp}</span>
+              <div className="grid grid-cols-2 gap-8">
+                 <div className="space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Paid To</span>
+                    <p className="text-sm font-black text-slate-900 uppercase">{selectedExpense.paidTo || '-'}</p>
+                 </div>
+                 <div className="space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Branch</span>
+                    <p className="text-sm font-black text-slate-900 uppercase">{selectedExpense.branch || 'HO'}</p>
+                 </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-4">
+                 {selectedExpense.billUrl ? (
+                    <a href={selectedExpense.billUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest border border-emerald-100 hover:bg-emerald-100 transition-all">
+                       <Check size={14} strokeWidth={3} /> View Attachment
+                    </a>
+                 ) : (
+                    <div className="flex items-center gap-2 bg-rose-50 text-rose-600 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest border border-rose-100">
+                       <AlertCircle size={14} strokeWidth={3} /> No Bill Attached
+                    </div>
+                 )}
+              </div>
+
+              {(selectedExpense.approvalTimestamp || selectedExpense.approvalRemarks) && (
+                <div className="mt-8 p-6 bg-slate-900 rounded-3xl space-y-4">
+                   <div className="flex justify-between items-center text-white">
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Audit Trail</span>
+                      <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{formatDateTime(selectedExpense.approvalTimestamp)}</span>
+                   </div>
+                   {selectedExpense.approvalRemarks && (
+                     <div className="space-y-2">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Admin Remarks</span>
+                        <p className="text-sm font-bold text-slate-200 leading-relaxed italic">"{selectedExpense.approvalRemarks}"</p>
+                     </div>
+                   )}
                 </div>
               )}
             </div>
 
+            <div className="p-8 bg-slate-50 border-t border-slate-100 flex justify-end">
+               <button onClick={closeViewModal} className="px-8 py-3 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-100">
+                  Dismiss Detail
+               </button>
+            </div>
           </div>
         </div>
       )}

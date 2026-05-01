@@ -290,91 +290,92 @@ export default function HeadMaster() {
 
   // ---------- Main Render ----------
   return (
-    <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8 bg-slate-50/50 min-h-screen">
+    <div className="p-0 md:p-8 space-y-8 md:space-y-12 animate-in fade-in duration-1000 bg-slate-50/50 min-h-screen">
+      
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-200">
-              <Layers size={24} />
-            </div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Master Data</h1>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 px-4 md:px-0">
+        <div>
+          <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-600 font-bold text-[10px] uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full mb-3 shadow-sm">
+            <Layers size={12} />
+            <span>Infrastructure Architecture</span>
           </div>
-          <p className="text-gray-500 text-sm font-medium ml-1">Configure your expense structure and hierarchy</p>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">Master Data Control</h1>
+          <p className="text-slate-500 font-medium italic">Define and govern the hierarchical structure of financial records</p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+          <div className="relative group w-full sm:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
             <input
               type="text"
-              placeholder="Search everything..."
+              placeholder="Search across hierarchy..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="pl-12 pr-6 py-3 bg-slate-50 border-none rounded-2xl text-sm focus:ring-4 focus:ring-blue-500/10 outline-none w-full md:w-80 shadow-inner transition-all placeholder:text-gray-400 font-medium"
+              className="w-full pl-12 pr-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 outline-none shadow-sm transition-all placeholder:text-slate-300"
             />
           </div>
           <button
             onClick={() => fetchMasterData()}
             disabled={fetching || saving}
-            className="p-3.5 bg-white border border-gray-100 rounded-2xl text-gray-600 hover:text-blue-600 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-50"
+            className="w-full sm:w-auto p-4 bg-slate-900 text-white rounded-2xl hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-slate-200"
           >
             <RefreshCw size={20} className={fetching ? 'animate-spin' : ''} />
           </button>
         </div>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main Hierarchical Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-2 md:px-0">
 
         {/* Column 1: Group Heads */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col h-[600px] transition-all hover:shadow-md">
+        <div className="bg-white border border-slate-200 rounded-[2rem] shadow-sm flex flex-col h-[500px] md:h-[600px] transition-all hover:shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
           <ColumnHeader title="Group Heads" icon={Layers} level="group" canAdd={true} />
           {activeAction?.type === 'add' && activeAction.level === 'group' && renderActionInput()}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
             {fetching ? (
-              <div className="space-y-2 p-2">
+              <div className="space-y-3 p-2">
                 {[1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className="h-12 bg-slate-50 animate-pulse rounded-xl" />
+                  <div key={i} className="h-14 bg-slate-50 animate-pulse rounded-2xl border border-slate-100" />
                 ))}
               </div>
             ) : groupHeads.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400 italic text-sm p-4 text-center">
-                <Info size={24} className="mb-2 opacity-20" />
-                No groups found
+              <div className="flex flex-col items-center justify-center h-full text-slate-300 text-center p-8">
+                <Box size={40} className="mb-4 opacity-20" />
+                <p className="text-[10px] font-black uppercase tracking-widest">No Primary Groups</p>
               </div>
             ) : groupHeads.map(gh => (
               <div
                 key={gh}
                 onClick={() => { setSelectedGroup(gh); setSelectedExpense(null); }}
-                className={`group flex items-center justify-between px-4 py-3.5 rounded-2xl cursor-pointer transition-all duration-300 ${
+                className={`group flex items-center justify-between px-5 py-4 rounded-[1.5rem] cursor-pointer transition-all duration-500 relative overflow-hidden ${
                   selectedGroup === gh 
-                    ? 'bg-blue-600 text-white shadow-xl shadow-blue-200 -translate-y-0.5' 
-                    : 'hover:bg-blue-50 text-gray-900 hover:shadow-sm'
+                    ? 'bg-slate-900 text-white shadow-2xl shadow-slate-200 -translate-y-1' 
+                    : 'hover:bg-indigo-50/50 text-slate-700'
                 } ${lastUpdated === gh ? 'animate-highlight' : ''}`}
               >
                 {activeAction?.type === 'edit' && activeAction.level === 'group' && activeAction.oldValue === gh ? (
                   <div className="w-full" onClick={e => e.stopPropagation()}>{renderActionInput()}</div>
                 ) : (
                   <>
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${selectedGroup === gh ? 'bg-white' : 'bg-blue-400'}`} />
-                      <span className="text-sm font-bold truncate flex-1">{gh}</span>
+                    <div className="flex items-center gap-4 overflow-hidden relative z-10">
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${selectedGroup === gh ? 'bg-indigo-400' : 'bg-slate-200'}`} />
+                      <span className="text-[13px] font-black uppercase tracking-tight truncate">{gh}</span>
                     </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                    <div className={`flex items-center gap-1.5 transition-all duration-300 ${selectedGroup === gh ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                       <button 
                         onClick={e => { e.stopPropagation(); startEdit('group', gh); }} 
-                        className={`p-2 rounded-xl transition-all ${selectedGroup === gh ? 'hover:bg-blue-500 text-blue-100' : 'hover:bg-blue-100 text-blue-600 bg-white shadow-sm'}`}
+                        className={`p-2 rounded-xl transition-all ${selectedGroup === gh ? 'hover:bg-white/10 text-white' : 'hover:bg-white text-indigo-600 bg-white shadow-sm border border-slate-100'}`}
                       >
-                        <Edit2 size={14} />
+                        <Edit2 size={14} strokeWidth={2.5} />
                       </button>
                       <button 
                         onClick={e => { e.stopPropagation(); handleDelete('group', gh); }} 
-                        className={`p-2 rounded-xl transition-all ${selectedGroup === gh ? 'hover:bg-blue-500 text-blue-100' : 'hover:bg-red-100 text-red-600 bg-white shadow-sm'}`}
+                        className={`p-2 rounded-xl transition-all ${selectedGroup === gh ? 'hover:bg-rose-500 text-white' : 'hover:bg-rose-50 text-rose-600 bg-white shadow-sm border border-slate-100'}`}
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={14} strokeWidth={2.5} />
                       </button>
-                      <ChevronRight size={14} className={selectedGroup === gh ? 'text-blue-200' : 'text-gray-300'} />
+                      <ChevronRight size={14} className={selectedGroup === gh ? 'text-indigo-400' : 'text-slate-300'} strokeWidth={3} />
                     </div>
                   </>
                 )}
@@ -384,53 +385,54 @@ export default function HeadMaster() {
         </div>
 
         {/* Column 2: Expense Heads */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col h-[600px] transition-all hover:shadow-md">
+        <div className="bg-white border border-slate-200 rounded-[2rem] shadow-sm flex flex-col h-[500px] md:h-[600px] transition-all hover:shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-sky-500"></div>
           <ColumnHeader title="Expense Heads" icon={Box} level="expense" canAdd={true} />
           {activeAction?.type === 'add' && activeAction.level === 'expense' && renderActionInput()}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
             {fetching ? (
-              <div className="space-y-2 p-2">
+              <div className="space-y-3 p-2">
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="h-12 bg-slate-50 animate-pulse rounded-xl" />
+                  <div key={i} className="h-14 bg-slate-50 animate-pulse rounded-2xl border border-slate-100" />
                 ))}
               </div>
             ) : expenseHeads.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400 italic text-sm p-4 text-center">
-                <Plus size={24} className="mb-2 opacity-20" />
-                No expense heads found
+              <div className="flex flex-col items-center justify-center h-full text-slate-300 text-center p-8">
+                <Subtitles size={40} className="mb-4 opacity-20" />
+                <p className="text-[10px] font-black uppercase tracking-widest">No Secondary Heads</p>
               </div>
             ) : expenseHeads.map(eh => (
               <div
                 key={eh}
                 onClick={() => setSelectedExpense(eh)}
-                className={`group flex items-center justify-between px-4 py-3.5 rounded-2xl cursor-pointer transition-all duration-300 ${
+                className={`group flex items-center justify-between px-5 py-4 rounded-[1.5rem] cursor-pointer transition-all duration-500 relative overflow-hidden ${
                   selectedExpense === eh 
-                    ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-200 -translate-y-0.5' 
-                    : 'hover:bg-indigo-50 text-gray-900 hover:shadow-sm'
+                    ? 'bg-slate-900 text-white shadow-2xl shadow-slate-200 -translate-y-1' 
+                    : 'hover:bg-sky-50/50 text-slate-700'
                 } ${lastUpdated === eh ? 'animate-highlight' : ''}`}
               >
                 {activeAction?.type === 'edit' && activeAction.level === 'expense' && activeAction.oldValue === eh ? (
                   <div className="w-full" onClick={e => e.stopPropagation()}>{renderActionInput()}</div>
                 ) : (
                   <>
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${selectedExpense === eh ? 'bg-white' : 'bg-indigo-400'}`} />
-                      <span className="text-sm font-bold truncate flex-1">{eh}</span>
+                    <div className="flex items-center gap-4 overflow-hidden relative z-10">
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${selectedExpense === eh ? 'bg-sky-400' : 'bg-slate-200'}`} />
+                      <span className="text-[13px] font-black uppercase tracking-tight truncate">{eh}</span>
                     </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                    <div className={`flex items-center gap-1.5 transition-all duration-300 ${selectedExpense === eh ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                       <button 
                         onClick={e => { e.stopPropagation(); startEdit('expense', eh); }} 
-                        className={`p-2 rounded-xl transition-all ${selectedExpense === eh ? 'hover:bg-indigo-500 text-indigo-100' : 'hover:bg-indigo-100 text-indigo-600 bg-white shadow-sm'}`}
+                        className={`p-2 rounded-xl transition-all ${selectedExpense === eh ? 'hover:bg-white/10 text-white' : 'hover:bg-white text-sky-600 bg-white shadow-sm border border-slate-100'}`}
                       >
-                        <Edit2 size={14} />
+                        <Edit2 size={14} strokeWidth={2.5} />
                       </button>
                       <button 
                         onClick={e => { e.stopPropagation(); handleDelete('expense', eh); }} 
-                        className={`p-2 rounded-xl transition-all ${selectedExpense === eh ? 'hover:bg-indigo-500 text-indigo-100' : 'hover:bg-red-100 text-red-600 bg-white shadow-sm'}`}
+                        className={`p-2 rounded-xl transition-all ${selectedExpense === eh ? 'hover:bg-rose-500 text-white' : 'hover:bg-rose-50 text-rose-600 bg-white shadow-sm border border-slate-100'}`}
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={14} strokeWidth={2.5} />
                       </button>
-                      <ChevronRight size={14} className={selectedExpense === eh ? 'text-indigo-200' : 'text-gray-300'} />
+                      <ChevronRight size={14} className={selectedExpense === eh ? 'text-sky-400' : 'text-slate-300'} strokeWidth={3} />
                     </div>
                   </>
                 )}
@@ -440,51 +442,52 @@ export default function HeadMaster() {
         </div>
 
         {/* Column 3: Sub Heads */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col h-[600px] transition-all hover:shadow-md">
+        <div className="bg-white border border-slate-200 rounded-[2rem] shadow-sm flex flex-col h-[500px] md:h-[600px] transition-all hover:shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
           <ColumnHeader title="Sub Heads" icon={Subtitles} level="sub" canAdd={true} />
           {activeAction?.type === 'add' && activeAction.level === 'sub' && renderActionInput()}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
             {fetching ? (
-              <div className="space-y-2 p-2">
+              <div className="space-y-3 p-2">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="h-12 bg-slate-50 animate-pulse rounded-xl" />
+                  <div key={i} className="h-14 bg-slate-50 animate-pulse rounded-2xl border border-slate-100" />
                 ))}
               </div>
             ) : subHeads.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400 italic text-sm p-4 text-center">
-                <Plus size={24} className="mb-2 opacity-20" />
-                No sub heads found
+              <div className="flex flex-col items-center justify-center h-full text-slate-300 text-center p-8">
+                <Plus size={40} className="mb-4 opacity-20" />
+                <p className="text-[10px] font-black uppercase tracking-widest">No Tertiary Detail</p>
               </div>
             ) : subHeads.map(sh => (
               <div
                 key={sh}
                 onClick={() => setSelectedSub(sh)}
-                className={`group flex items-center justify-between px-4 py-3.5 rounded-2xl cursor-pointer transition-all duration-300 ${
+                className={`group flex items-center justify-between px-5 py-4 rounded-[1.5rem] cursor-pointer transition-all duration-500 relative overflow-hidden ${
                   selectedSub === sh 
-                    ? 'bg-sky-600 text-white shadow-xl shadow-sky-200 -translate-y-0.5' 
-                    : 'hover:bg-sky-50 text-gray-900 hover:shadow-sm'
+                    ? 'bg-slate-900 text-white shadow-2xl shadow-slate-200 -translate-y-1' 
+                    : 'hover:bg-emerald-50/50 text-slate-700'
                 } ${lastUpdated === sh ? 'animate-highlight' : ''}`}
               >
                 {activeAction?.type === 'edit' && activeAction.level === 'sub' && activeAction.oldValue === sh ? (
                   <div className="w-full" onClick={e => e.stopPropagation()}>{renderActionInput()}</div>
                 ) : (
                   <>
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${selectedSub === sh ? 'bg-white' : 'bg-sky-400'}`} />
-                      <span className="text-sm font-bold truncate flex-1">{sh}</span>
+                    <div className="flex items-center gap-4 overflow-hidden relative z-10">
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${selectedSub === sh ? 'bg-emerald-400' : 'bg-slate-200'}`} />
+                      <span className="text-[13px] font-black uppercase tracking-tight truncate">{sh}</span>
                     </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                    <div className={`flex items-center gap-1.5 transition-all duration-300 ${selectedSub === sh ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                       <button 
                         onClick={e => { e.stopPropagation(); startEdit('sub', sh); }} 
-                        className={`p-2 rounded-xl transition-all ${selectedSub === sh ? 'hover:bg-sky-500 text-sky-100' : 'hover:bg-sky-100 text-sky-600 bg-white shadow-sm'}`}
+                        className={`p-2 rounded-xl transition-all ${selectedSub === sh ? 'hover:bg-white/10 text-white' : 'hover:bg-white text-emerald-600 bg-white shadow-sm border border-slate-100'}`}
                       >
-                        <Edit2 size={14} />
+                        <Edit2 size={14} strokeWidth={2.5} />
                       </button>
                       <button 
                         onClick={e => { e.stopPropagation(); handleDelete('sub', sh); }} 
-                        className={`p-2 rounded-xl transition-all ${selectedSub === sh ? 'hover:bg-sky-500 text-sky-100' : 'hover:bg-red-100 text-red-600 bg-white shadow-sm'}`}
+                        className={`p-2 rounded-xl transition-all ${selectedSub === sh ? 'hover:bg-rose-500 text-white' : 'hover:bg-rose-50 text-rose-600 bg-white shadow-sm border border-slate-100'}`}
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={14} strokeWidth={2.5} />
                       </button>
                     </div>
                   </>
@@ -496,22 +499,18 @@ export default function HeadMaster() {
 
       </div>
 
-      {/* Syncing Overlay */}
+      {/* Industrial Feedback Toast (Persistent) */}
       {saving && (
-        <div className="fixed bottom-8 right-8 bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce z-50">
-          <Loader2 size={20} className="animate-spin" />
-          <span className="font-bold text-sm">Saving changes...</span>
+        <div className="fixed bottom-8 right-8 bg-slate-900 text-white px-8 py-4 rounded-3xl shadow-2xl flex items-center gap-4 animate-bounce z-50 border border-white/10">
+          <Loader2 size={20} className="animate-spin text-indigo-400" />
+          <span className="font-black text-[10px] uppercase tracking-[0.2em]">Synchronizing Master Records...</span>
         </div>
       )}
 
-      {/* Error Alert */}
-      {fetchError && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 z-50">
-          <AlertCircle size={20} />
-          <span className="font-bold text-sm">{fetchError}</span>
-          <button onClick={() => fetchMasterData()} className="ml-4 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg text-xs transition-colors">Retry</button>
-        </div>
-      )}
+      {/* Global Persistence Note */}
+      <div className="flex items-center justify-center py-10 opacity-30 grayscale pointer-events-none">
+         <img src="/logo.png" alt="System" className="h-6" />
+      </div>
     </div>
   );
 }

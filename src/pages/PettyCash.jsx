@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Plus, Trash2, Wallet, ArrowUpRight, ArrowDownRight, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Wallet, ArrowUpRight, ArrowDownRight, RotateCcw, Calendar } from 'lucide-react';
 import { formatCurrency, formatDate, getTodayDate } from '../utils/helpers';
 
 const APPSCRIPT_URL = import.meta.env.VITE_APPSCRIPT_URL;
@@ -171,210 +171,301 @@ export default function PettyCash() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+    <div className="p-0 md:p-8 space-y-8 md:space-y-12 animate-in fade-in duration-1000">
+      
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 px-4 md:px-0">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Petty Cash Ledger</h1>
-          <p className="text-gray-500 mt-1 text-sm">Track daily cash inflows and outflows</p>
+          <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-600 font-bold text-[10px] uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full mb-3 shadow-sm">
+            <Wallet size={12} />
+            <span>Liquid Capital Tracker</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">Petty Cash Ledger</h1>
+          <p className="text-slate-500 font-medium italic">Track daily cash inflows and outflows with precision</p>
         </div>
+
         <button
           onClick={() => setShowForm(!showForm)}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-sm shadow-blue-200 transition w-fit"
+          className={`w-full md:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl text-sm font-black shadow-xl transition-all active:scale-95 group whitespace-nowrap ${
+            showForm 
+              ? 'bg-rose-50 text-rose-600 border border-rose-100 shadow-rose-50' 
+              : 'bg-slate-900 text-white shadow-slate-200 hover:bg-slate-800'
+          }`}
         >
-          <Plus size={20} /> Add Transaction
+          {showForm ? (
+            <>
+              <RotateCcw size={18} strokeWidth={3} />
+              Cancel Entry
+            </>
+          ) : (
+            <>
+              <Plus size={18} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-300" />
+              New Transaction
+            </>
+          )}
         </button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-2xl flex items-start justify-between">
-          <div>
-            <p className="text-sm font-medium text-blue-600 uppercase tracking-wider">Current Balance</p>
-            <h2 className="text-3xl font-bold text-blue-900 mt-2">{formatCurrency(currentBalance)}</h2>
-          </div>
-          <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
-            <Wallet size={24} />
-          </div>
-        </div>
-
-        <div className="bg-emerald-50/50 border border-emerald-100 p-6 rounded-2xl flex items-start justify-between">
-          <div>
-            <p className="text-sm font-medium text-emerald-600 uppercase tracking-wider">Total Received</p>
-            <h2 className="text-3xl font-bold text-emerald-900 mt-2">{formatCurrency(totalReceived)}</h2>
-          </div>
-          <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
-            <ArrowUpRight size={24} />
+      {/* Industrial Grade Summary Dashboard */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-4 md:px-0">
+        {/* Current Balance */}
+        <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-xl transition-all duration-500">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110 duration-500 opacity-50"></div>
+          <div className="relative">
+            <div className="p-3 bg-indigo-600 text-white rounded-2xl w-fit shadow-lg shadow-indigo-100 mb-4">
+              <Wallet size={20} strokeWidth={2.5} />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Available Balance</p>
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">{formatCurrency(currentBalance).replace('INR', '₹')}</h2>
           </div>
         </div>
 
-        <div className="bg-rose-50/50 border border-rose-100 p-6 rounded-2xl flex items-start justify-between">
-          <div>
-            <p className="text-sm font-medium text-rose-600 uppercase tracking-wider">Total Expense</p>
-            <h2 className="text-3xl font-bold text-rose-900 mt-2">{formatCurrency(totalExpense)}</h2>
-          </div>
-          <div className="p-3 bg-rose-100 text-rose-600 rounded-xl">
-            <ArrowDownRight size={24} />
+        {/* Total Received */}
+        <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-xl transition-all duration-500">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110 duration-500 opacity-50"></div>
+          <div className="relative">
+            <div className="p-3 bg-emerald-600 text-white rounded-2xl w-fit shadow-lg shadow-emerald-100 mb-4">
+              <ArrowUpRight size={20} strokeWidth={2.5} />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Inflow</p>
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight text-emerald-600">{formatCurrency(totalReceived).replace('INR', '₹')}</h2>
           </div>
         </div>
 
-        <div className="bg-amber-50/50 border border-amber-100 p-6 rounded-2xl flex items-start justify-between">
-          <div>
-            <p className="text-sm font-medium text-amber-600 uppercase tracking-wider">Cash Returned</p>
-            <h2 className="text-3xl font-bold text-amber-900 mt-2">{formatCurrency(cashReturned)}</h2>
+        {/* Total Expense */}
+        <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-xl transition-all duration-500">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110 duration-500 opacity-50"></div>
+          <div className="relative">
+            <div className="p-3 bg-rose-600 text-white rounded-2xl w-fit shadow-lg shadow-rose-100 mb-4">
+              <ArrowDownRight size={20} strokeWidth={2.5} />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Outflow</p>
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight text-rose-600">{formatCurrency(totalExpense).replace('INR', '₹')}</h2>
           </div>
-          <div className="p-3 bg-amber-100 text-amber-600 rounded-xl">
-            <RotateCcw size={24} />
+        </div>
+
+        {/* Cash Returned */}
+        <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-xl transition-all duration-500">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110 duration-500 opacity-50"></div>
+          <div className="relative">
+            <div className="p-3 bg-amber-500 text-white rounded-2xl w-fit shadow-lg shadow-amber-100 mb-4">
+              <RotateCcw size={20} strokeWidth={2.5} />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cash Returned</p>
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight text-amber-600">{formatCurrency(cashReturned).replace('INR', '₹')}</h2>
           </div>
         </div>
       </div>
 
-      {/* New Transaction Form */}
+      {/* Transaction Entry Form */}
       {showForm && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6 animate-in slide-in-from-top duration-300">
-          <h3 className="text-lg font-bold text-gray-900">New Cash Transaction</h3>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Date</label>
+        <div className="mx-4 md:mx-0 bg-white rounded-[2rem] border border-slate-200 shadow-2xl p-6 md:p-10 space-y-8 animate-in slide-in-from-top duration-500 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500"></div>
+          <div className="flex items-center gap-4">
+             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
+                <Plus size={24} strokeWidth={3} />
+             </div>
+             <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Record Cash Transaction</h3>
+          </div>
+
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Value Date</label>
               <input
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 shadow-sm text-sm"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Type</label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Transaction Type</label>
               <select
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 shadow-sm text-sm font-medium"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all appearance-none cursor-pointer shadow-sm"
                 required
               >
-                <option value="Cash Received">Cash Received</option>
-                <option value="Expense">Expense</option>
-                <option value="Cash Returned">Cash Returned</option>
+                <option value="Cash Received">Cash Received (+)</option>
+                <option value="Expense">Expense (-)</option>
+                <option value="Cash Returned">Cash Returned (+)</option>
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Amount (INR)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                placeholder="0.00"
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 shadow-sm text-sm"
-                required
-              />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Amount (INR)</label>
+              <div className="relative group">
+                 <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                 <input
+                   type="number"
+                   step="0.01"
+                   value={formData.amount}
+                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                   placeholder="0.00"
+                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-5 py-4 text-lg font-black text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm"
+                   required
+                 />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Description / Memo</label>
               <input
                 type="text"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Brief description..."
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 shadow-sm text-sm"
+                placeholder="Nature of transaction..."
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm"
                 required
               />
             </div>
 
-            <div className="md:col-span-2 flex gap-3 pt-2">
+            <div className="md:col-span-2 pt-4 flex flex-col sm:flex-row gap-4">
               <button
                 type="submit"
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-sm transition text-sm"
+                className="flex-1 bg-slate-900 text-white px-8 py-4 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-100"
               >
-                Add Transaction
+                Commit to Ledger
               </button>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition text-sm"
+                className="px-8 py-4 bg-slate-100 text-slate-500 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-rose-50 hover:text-rose-600 transition-all active:scale-95 border border-slate-200"
               >
-                Cancel
+                Discard
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Ledger Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 text-gray-500 text-xs font-bold tracking-wider uppercase border-b border-gray-200">
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4">Description</th>
-                <th className="px-6 py-4 text-right">In</th>
-                <th className="px-6 py-4 text-right">Out</th>
-                <th className="px-6 py-4 text-right">Balance</th>
-                <th className="px-6 py-4 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
-              {fetching ? (
-                <tr>
-                  <td colSpan="7" className="px-6 py-12 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="text-gray-500 mt-3 text-sm font-medium">Loading ledger...</p>
-                  </td>
-                </tr>
-              ) : displayTransactions.map((t) => (
-                <tr key={t.id} className="hover:bg-gray-50/50 transition-colors font-medium">
-                  <td className="px-6 py-4 text-gray-600 font-normal">{formatDate(t.date)}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${
-                      t.type === 'Cash Received'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : t.type === 'Expense'
-                        ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                        : 'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}>
-                      {t.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-900">{t.description}</td>
-                  
-                  {/* In Column */}
-                  <td className="px-6 py-4 text-right text-emerald-600 font-bold">
-                    {(t.type === 'Cash Received' || t.type === 'Cash Returned') ? formatCurrency(t.amount) : '-'}
-                  </td>
-                  
-                  {/* Out Column */}
-                  <td className="px-6 py-4 text-right text-rose-600 font-bold">
-                    {t.type === 'Expense' ? formatCurrency(t.amount) : '-'}
-                  </td>
-                  
-                  {/* Balance Column */}
-                  <td className="px-6 py-4 text-right text-gray-900 font-bold">
-                    {formatCurrency(t.balance)}
-                  </td>
-
-                  <td className="px-6 py-4 text-center">
-                    <button
-                      onClick={() => handleDelete(t.id)}
-                      className="text-gray-400 hover:text-rose-600 transition-colors p-1"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        {transactions.length === 0 && (
-          <div className="text-center py-12 text-gray-400 font-medium">
-            No transactions logged yet.
+      {/* Main Content Area */}
+      <div className="bg-white rounded-[2rem] md:border border-slate-200 shadow-sm overflow-hidden min-h-[400px] flex flex-col">
+        {fetching ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-[3px] border-indigo-600 border-t-transparent mx-auto"></div>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Syncing Financial Records...</p>
           </div>
+        ) : displayTransactions.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-20 bg-slate-50/50">
+            <div className="p-6 bg-white rounded-full shadow-sm mb-4">
+               <RotateCcw className="text-slate-300 animate-spin-slow" size={48} />
+            </div>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No ledger entries found</p>
+          </div>
+        ) : (
+          <>
+            {/* Mobile Card View */}
+            <div className="md:hidden flex flex-col gap-5 p-2 pb-48 bg-slate-50/50">
+               {displayTransactions.map((t) => (
+                 <div key={t.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col gap-5 group relative overflow-hidden active:scale-[0.98] transition-transform">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-slate-100 group-hover:bg-indigo-500 transition-colors"></div>
+                    
+                    <div className="flex justify-between items-start">
+                       <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-2">
+                             <Calendar size={12} className="text-slate-400" />
+                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{formatDate(t.date)}</span>
+                          </div>
+                          <h3 className="font-black text-slate-900 text-lg leading-tight uppercase line-clamp-2 pr-4 tracking-tight">{t.description}</h3>
+                       </div>
+                       <button 
+                         onClick={() => handleDelete(t.timestamp || t.id)} 
+                         className="p-2.5 bg-slate-50 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                       >
+                          <Trash2 size={18} strokeWidth={2.5} />
+                       </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 bg-slate-50/80 p-4 rounded-2xl border border-slate-100/50">
+                       <div className="space-y-1.5">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Transaction Type</span>
+                          <div className="flex">
+                             <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider ${
+                                t.type === 'Cash Received' ? 'bg-emerald-100 text-emerald-700' :
+                                t.type === 'Expense' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+                             }`}>
+                                {t.type}
+                             </span>
+                          </div>
+                       </div>
+                       <div className="text-right space-y-1.5 border-l border-slate-200 pl-3">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Running Balance</span>
+                          <p className="text-[13px] font-black text-slate-900 tracking-tight">{formatCurrency(t.balance).replace('INR', '₹')}</p>
+                       </div>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-2">
+                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Settlement Amount</span>
+                       <span className={`text-2xl font-black tracking-tighter ${
+                          t.type === 'Expense' ? 'text-rose-600' : 'text-emerald-600'
+                       }`}>
+                          {t.type === 'Expense' ? '-' : '+'}{formatCurrency(t.amount).replace('INR', '₹')}
+                       </span>
+                    </div>
+                 </div>
+               ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/50">
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Value Date</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Inflow (+)</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Outflow (-)</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Balance</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {displayTransactions.map((t) => (
+                    <tr key={t.id} className="hover:bg-slate-50/50 transition-colors group">
+                      <td className="px-6 py-5 text-center">
+                        <button
+                          onClick={() => handleDelete(t.timestamp || t.id)}
+                          className="p-2.5 bg-slate-100 text-slate-400 hover:bg-rose-600 hover:text-white rounded-xl transition-all shadow-sm active:scale-95"
+                          title="Delete Transaction"
+                        >
+                          <Trash2 size={16} strokeWidth={3} />
+                        </button>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="text-[13px] font-bold text-slate-600">{formatDate(t.date)}</span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${
+                          t.type === 'Cash Received' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                          t.type === 'Expense' ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-amber-50 text-amber-700 border-amber-100'
+                        }`}>
+                          {t.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 max-w-[300px]">
+                        <span className="text-[13px] font-black text-slate-900 uppercase tracking-tight truncate block" title={t.description}>{t.description}</span>
+                      </td>
+                      <td className="px-6 py-5 text-right font-black text-emerald-600 tracking-tight">
+                        {(t.type === 'Cash Received' || t.type === 'Cash Returned') ? formatCurrency(t.amount).replace('INR', '₹') : '-'}
+                      </td>
+                      <td className="px-6 py-5 text-right font-black text-rose-600 tracking-tight">
+                        {t.type === 'Expense' ? formatCurrency(t.amount).replace('INR', '₹') : '-'}
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                         <span className="px-3 py-1.5 bg-slate-900 text-white rounded-xl text-[13px] font-black shadow-lg shadow-slate-100">
+                           {formatCurrency(t.balance).replace('INR', '₹')}
+                         </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

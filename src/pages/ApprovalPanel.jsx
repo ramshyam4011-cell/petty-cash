@@ -89,7 +89,7 @@ export default function ApprovalPanel() {
   const handleApprove = async (expense) => {
     try {
       toast.loading('Approving on sheet...', { id: 'approve-toast' });
-      
+
       const response = await fetch(APPSCRIPT_URL, {
         method: 'POST',
         body: JSON.stringify({
@@ -99,7 +99,7 @@ export default function ApprovalPanel() {
           timestamp: getGoogleSheetTimestamp()
         })
       });
-      
+
       const json = await response.json();
       if (!json.success) throw new Error(json.error || 'Failed to update sheet');
 
@@ -120,7 +120,7 @@ export default function ApprovalPanel() {
       // Create ledger entry
       const currentExpenses = updatedExpenses.filter(e => e.status === 'APPROVED');
       const currentBalance = calculateBalance(expense.personName, freshCredits, currentExpenses);
-      
+
       const ledgerEntry = createLedgerEntry(
         expense.id,
         expense.personName,
@@ -167,7 +167,7 @@ export default function ApprovalPanel() {
           timestamp: getGoogleSheetTimestamp()
         })
       });
-      
+
       const json = await response.json();
       if (!json.success) throw new Error(json.error || 'Failed to update sheet');
 
@@ -191,217 +191,250 @@ export default function ApprovalPanel() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Approval Panel</h1>
-        <p className="text-gray-500 mt-1">Review and act on expense submissions</p>
+    <div className="p-2 md:p-6 space-y-6 md:space-y-10 animate-in fade-in duration-1000">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">Approval Panel</h1>
+          <p className="text-slate-500 font-medium italic">Review and act on expense submissions</p>
+        </div>
+        <button 
+          onClick={fetchExpenses}
+          className="bg-slate-900 text-white px-5 py-3 rounded-2xl text-sm font-black shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-2"
+        >
+          <AlertCircle size={18} className="text-indigo-400" /> Refresh Data
+        </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 bg-gray-100 p-1.5 rounded-xl w-fit">
-        {['pending', 'approved', 'rejected', 'hold'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition flex items-center gap-2 uppercase tracking-wider ${
-              activeTab === tab
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {tab}
-            <span
-              className={`px-2 py-0.5 rounded-full text-xs ${
-                tab === 'pending'
-                  ? 'bg-amber-100 text-amber-800 font-bold'
-                  : tab === 'approved'
-                  ? 'bg-emerald-100 text-emerald-800 font-bold'
-                  : tab === 'rejected'
-                  ? 'bg-rose-100 text-rose-800 font-bold'
-                  : 'bg-slate-200 text-slate-700 font-bold'
-              }`}
+      {/* Tabs - Scrollable on Mobile */}
+      <div className="overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex gap-2 bg-slate-100/80 p-1.5 rounded-2xl w-max md:w-fit border border-slate-200/30">
+          {['pending', 'approved', 'rejected', 'hold'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 md:px-6 py-2.5 rounded-[14px] font-black text-[11px] transition-all duration-300 flex items-center gap-2.5 uppercase tracking-wider whitespace-nowrap ${activeTab === tab
+                  ? 'bg-white text-indigo-600 shadow-lg scale-105'
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
+                }`}
             >
-              {counts[tab]}
-            </span>
-          </button>
-        ))}
+              {tab}
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${tab === 'pending'
+                    ? 'bg-amber-100 text-amber-600'
+                    : tab === 'approved'
+                      ? 'bg-emerald-100 text-emerald-600'
+                      : tab === 'rejected'
+                        ? 'bg-rose-100 text-rose-600'
+                        : 'bg-slate-200 text-slate-600'
+                  }`}
+              >
+                {counts[tab]}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Expense Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      {/* Expense Data Area */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden min-h-[400px] flex flex-col">
         {fetching ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="text-gray-500 mt-4 font-medium">Fetching expenses from sheet...</p>
+          <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-[3px] border-indigo-600 border-t-transparent mx-auto"></div>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Syncing Sheet Data...</p>
           </div>
         ) : filteredExpenses.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50">
-            <FileText className="mx-auto text-gray-400 mb-3" size={40} />
-            <p className="text-gray-500 font-medium">No expense submissions found in this category.</p>
+          <div className="flex-1 flex flex-col items-center justify-center py-20 bg-slate-50/50">
+            <div className="p-6 bg-white rounded-full shadow-sm mb-4">
+               <FileText className="text-slate-200" size={48} />
+            </div>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No {activeTab} vouchers found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50/50">
-                  <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Voucher</th>
-                  <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
-                  <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">By</th>
-                  <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Amount</th>
-                  <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Mode</th>
-                  <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Bill</th>
-                  <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredExpenses.map((expense) => (
-                  <tr key={expense.id} className="hover:bg-gray-50/50 transition-colors group">
-                    {/* VOUCHER */}
-                    <td className="px-5 py-4">
-                      <span className="text-[13px] font-mono text-gray-500">{expense.sn}</span>
-                    </td>
-                    
-                    {/* DATE */}
-                    <td className="px-5 py-4">
-                      <span className="text-[13px] text-gray-600">{formatDate(expense.date)}</span>
-                    </td>
-                    
-                    {/* CATEGORY */}
-                    <td className="px-5 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-[13px] font-semibold text-gray-900">{expense.groupHead}</span>
-                        <span className="text-[12px] text-gray-400">{expense.subHead || expense.expenseHead}</span>
-                      </div>
-                    </td>
-                    
-                    {/* DESCRIPTION */}
-                    <td className="px-5 py-4 max-w-[200px]">
-                      <div className="flex flex-col">
-                        <span className="text-[13px] font-medium text-gray-900 truncate" title={expense.remarks}>{expense.remarks || '-'}</span>
-                        <span className="text-[12px] text-gray-400 truncate" title={expense.personName}>{expense.personName}</span>
-                      </div>
-                      {expense.approvalRemarks && (
-                        <div className="mt-1 text-[11px] text-rose-600 flex items-start gap-1">
-                          <AlertCircle size={12} className="mt-[2px] flex-shrink-0" />
-                          <span className="line-clamp-2" title={expense.approvalRemarks}>{expense.approvalRemarks}</span>
-                        </div>
-                      )}
-                    </td>
-                    
-                    {/* BY */}
-                    <td className="px-5 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-[13px] text-gray-500">{expense.user || 'Admin'}</span>
-                        <span className="text-[12px] text-gray-400">{expense.branch || 'HO'}</span>
-                      </div>
-                    </td>
-                    
-                    {/* AMOUNT */}
-                    <td className="px-5 py-4 text-right">
-                      <span className="text-[14px] font-bold text-gray-900">{formatCurrency(expense.amount)}</span>
-                    </td>
-                    
-                    {/* MODE */}
-                    <td className="px-5 py-4 text-center">
-                      <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md text-[11px] font-medium border border-gray-200 uppercase tracking-wide">
-                        {expense.paymentMode || 'CASH'}
-                      </span>
-                    </td>
-                    
-                    {/* BILL */}
-                    <td className="px-5 py-4 text-center">
-                      {expense.billUrl ? (
-                        <Check size={16} strokeWidth={3} className="text-emerald-500 mx-auto" />
-                      ) : (
-                        <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded border border-amber-200 font-bold">NO BILL</span>
-                      )}
-                    </td>
+          <>
+            {/* Mobile Cards (Hidden on Desktop) */}
+            <div className="md:hidden flex flex-col divide-y divide-slate-100">
+               {filteredExpenses.map((expense) => (
+                 <div key={expense.id} className="p-4 flex flex-col gap-4">
+                    <div className="flex justify-between items-start">
+                       <div className="flex flex-col gap-1.5">
+                          <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-black border border-indigo-100 uppercase tracking-widest w-fit">{expense.sn}</span>
+                          <h3 className="font-black text-slate-900 text-lg leading-tight uppercase">{expense.personName}</h3>
+                          <span className="text-[11px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg w-fit">{expense.groupHead}</span>
+                       </div>
+                       <div className="text-right">
+                          <p className="text-xl font-black text-slate-900">{formatCurrency(expense.amount).replace('INR', '₹')}</p>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">{expense.paymentMode}</span>
+                       </div>
+                    </div>
 
-                    {/* ACTIONS */}
-                    <td className="px-5 py-4 text-center">
-                      {activeTab === 'pending' ? (
-                        <div className="flex justify-center gap-2">
-                          <button
-                            onClick={() => handleApprove(expense)}
-                            className="p-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-lg transition shadow-sm"
-                            title="Approve"
-                          >
-                            <Check size={16} strokeWidth={2.5} />
-                          </button>
-                          <button
-                            onClick={() => openModal(expense, 'REJECT')}
-                            className="p-1.5 bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white rounded-lg transition shadow-sm"
-                            title="Reject"
-                          >
-                            <X size={16} strokeWidth={2.5} />
-                          </button>
-                          <button
-                            onClick={() => openModal(expense, 'HOLD')}
-                            className="p-1.5 bg-slate-100 text-slate-700 hover:bg-slate-600 hover:text-white rounded-lg transition shadow-sm"
-                            title="Hold"
-                          >
-                            <Pause size={16} strokeWidth={2.5} />
-                          </button>
-                        </div>
-                      ) : (
-                        <span
-                          className={`px-3 py-1 rounded-md text-[11px] font-bold tracking-wider uppercase inline-block ${
-                            expense.status === 'APPROVED'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : expense.status === 'REJECTED'
-                              ? 'bg-rose-100 text-rose-800'
-                              : 'bg-slate-100 text-slate-700'
-                          }`}
-                        >
-                          {expense.status}
-                        </span>
-                      )}
-                    </td>
+                    <div className="bg-slate-50 p-3 rounded-2xl space-y-2">
+                       <div className="flex justify-between text-[11px] font-bold">
+                          <span className="text-slate-400 uppercase">Description</span>
+                          <span className="text-slate-600">{formatDate(expense.date)}</span>
+                       </div>
+                       <p className="text-xs text-slate-700 font-medium leading-relaxed">{expense.remarks || '-'}</p>
+                    </div>
+
+                    {expense.approvalRemarks && (
+                      <div className="flex items-start gap-2 p-3 bg-rose-50 rounded-2xl border border-rose-100 text-rose-600 text-[11px] font-bold">
+                        <AlertCircle size={14} className="flex-shrink-0" />
+                        <span>{expense.approvalRemarks}</span>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                       {(activeTab === 'pending' || activeTab === 'hold') ? (
+                         <>
+                           <button onClick={() => handleApprove(expense)} className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 text-white py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all active:scale-95">
+                              <Check size={16} strokeWidth={3} /> Approve
+                           </button>
+                           <button onClick={() => openModal(expense, 'REJECT')} className="p-3 bg-rose-50 text-rose-600 rounded-2xl font-black transition-all active:scale-95 border border-rose-100">
+                              <X size={20} strokeWidth={3} />
+                           </button>
+                           {activeTab === 'pending' && (
+                             <button onClick={() => openModal(expense, 'HOLD')} className="p-3 bg-slate-100 text-slate-600 rounded-2xl font-black transition-all active:scale-95 border border-slate-200">
+                                <Pause size={20} strokeWidth={3} />
+                             </button>
+                           )}
+                         </>
+                       ) : (
+                         <div className="w-full text-center py-2 bg-slate-50 rounded-xl">
+                            <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${
+                              expense.status === 'APPROVED' ? 'text-emerald-600' :
+                              expense.status === 'REJECTED' ? 'text-rose-600' : 'text-slate-600'
+                            }`}>{expense.status}</span>
+                         </div>
+                       )}
+                    </div>
+                 </div>
+               ))}
+            </div>
+
+            {/* Desktop Table (Hidden on Mobile) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/50">
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Voucher</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Amount</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {filteredExpenses.map((expense) => (
+                    <tr key={expense.id} className="hover:bg-slate-50/50 transition-colors group">
+                      <td className="px-6 py-5">
+                        <span className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-[12px] font-black border border-indigo-100 shadow-sm">{expense.sn}</span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="text-[13px] font-bold text-slate-600">{formatDate(expense.date)}</span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex flex-col">
+                          <span className="text-[13px] font-black text-slate-900 uppercase tracking-tight">{expense.groupHead}</span>
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{expense.subHead || expense.expenseHead}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 max-w-[280px]">
+                        <div className="flex flex-col">
+                          <span className="text-[13px] font-bold text-slate-900 truncate uppercase" title={expense.remarks}>{expense.remarks || '-'}</span>
+                          <span className="text-[11px] font-bold text-indigo-500 uppercase tracking-wider truncate" title={expense.personName}>{expense.personName}</span>
+                        </div>
+                        {expense.approvalRemarks && (
+                          <div className="mt-1.5 p-2 bg-rose-50 rounded-xl text-[10px] text-rose-600 font-bold flex items-start gap-1.5 border border-rose-100">
+                            <AlertCircle size={12} className="flex-shrink-0 mt-[1px]" />
+                            <span className="line-clamp-2">{expense.approvalRemarks}</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <div className="flex flex-col items-end">
+                           <span className="text-base font-black text-slate-900 tracking-tight">{formatCurrency(expense.amount).replace('INR', '₹')}</span>
+                           <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{expense.paymentMode}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        {(activeTab === 'pending' || activeTab === 'hold') ? (
+                          <div className="flex justify-center gap-2">
+                            <button onClick={() => handleApprove(expense)} className="p-2.5 bg-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all shadow-sm active:scale-95" title="Approve">
+                              <Check size={18} strokeWidth={3} />
+                            </button>
+                            <button onClick={() => openModal(expense, 'REJECT')} className="p-2.5 bg-rose-100 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all shadow-sm active:scale-95" title="Reject">
+                              <X size={18} strokeWidth={3} />
+                            </button>
+                            {activeTab === 'pending' && (
+                              <button onClick={() => openModal(expense, 'HOLD')} className="p-2.5 bg-slate-100 text-slate-600 hover:bg-slate-600 hover:text-white rounded-xl transition-all shadow-sm active:scale-95" title="Hold">
+                                <Pause size={18} strokeWidth={3} />
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex justify-center">
+                            <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] border ${
+                              expense.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                              expense.status === 'REJECTED' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                              'bg-slate-50 text-slate-600 border-slate-200'
+                            }`}>
+                              {expense.status}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
-      {/* Remark Modal for Reject/Hold */}
+      {/* Remark Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
-            <h3 className="text-lg font-bold text-gray-900">
-              {actionType === 'REJECT' ? 'Reject Expense' : 'Put Expense on Hold'}
-            </h3>
-            <p className="text-sm text-gray-500">
-              Please provide a reason for this action.
-            </p>
-            <textarea
-              value={remark}
-              onChange={(e) => setRemark(e.target.value)}
-              placeholder="Enter your remark here..."
-              rows="4"
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-              required
-            />
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={handleConfirmAction}
-                className={`flex-1 py-2.5 font-semibold rounded-xl text-white shadow-sm transition ${
-                  actionType === 'REJECT'
-                    ? 'bg-rose-600 hover:bg-rose-700'
-                    : 'bg-slate-700 hover:bg-slate-800'
-                }`}
-              >
-                Confirm {actionType === 'REJECT' ? 'Rejection' : 'Hold'}
-              </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="flex-1 py-2.5 font-semibold rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition"
-              >
-                Cancel
-              </button>
+        <div className="fixed inset-0 lg:left-64 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden border border-white/20 animate-in zoom-in-95 duration-300">
+            <div className="p-8 pb-4">
+              <div className="flex items-center gap-4 mb-4">
+                <div className={`p-3 rounded-2xl text-white shadow-lg ${actionType === 'REJECT' ? 'bg-rose-600 shadow-rose-100' : 'bg-slate-700 shadow-slate-100'}`}>
+                  {actionType === 'REJECT' ? <X size={24} strokeWidth={3} /> : <Pause size={24} strokeWidth={3} />}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                    {actionType === 'REJECT' ? 'Reject Voucher' : 'Hold Voucher'}
+                  </h3>
+                  <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Admin Action Required</p>
+                </div>
+              </div>
+              <p className="text-sm font-medium text-slate-500 mb-6 leading-relaxed">
+                Provide a detailed reason for {actionType === 'REJECT' ? 'rejection' : 'holding'} this expense. This will be visible to the user.
+              </p>
+              <textarea
+                value={remark}
+                onChange={(e) => setRemark(e.target.value)}
+                placeholder="Type remark here..."
+                rows="4"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-300"
+                required
+              />
+            </div>
+            <div className="p-8 pt-4 flex gap-3">
+               <button
+                 onClick={handleConfirmAction}
+                 className={`flex-1 py-4 font-black rounded-2xl text-white text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl ${
+                   actionType === 'REJECT' ? 'bg-rose-600 shadow-rose-100 hover:bg-rose-700' : 'bg-slate-900 shadow-slate-100 hover:bg-slate-800'
+                 }`}
+               >
+                 Confirm {actionType === 'REJECT' ? 'Reject' : 'Hold'}
+               </button>
+               <button
+                 onClick={() => setShowModal(false)}
+                 className="px-6 py-4 font-black rounded-2xl bg-white border border-slate-200 text-slate-500 text-xs uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95"
+               >
+                 Abort
+               </button>
             </div>
           </div>
         </div>
