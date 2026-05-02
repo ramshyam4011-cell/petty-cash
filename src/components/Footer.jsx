@@ -41,7 +41,7 @@ const Footer = ({ isCollapsed }) => {
                                 `}
                             >
                                 <item.icon size={18} className={`mb-1 transition-transform duration-300 ${location.pathname === item.path ? 'scale-110' : ''}`} />
-                                <span className="text-[9px] font-black uppercase tracking-tighter">{item.label}</span>
+                                <span className="text-[9px] font-semibold  er">{item.label}</span>
                             </NavLink>
                         ))}
                     </div>
@@ -49,12 +49,12 @@ const Footer = ({ isCollapsed }) => {
 
                 {/* Attribution Bar */}
                 <div className="py-2.5 flex justify-center items-center">
-                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                    <p className="text-[10px] font-semibold text-slate-300  ">
                         Powered By <a 
                             href="https://www.botivate.in" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-slate-400 hover:text-indigo-600 font-black transition-colors"
+                            className="text-slate-400 hover:text-indigo-600 font-semibold transition-colors"
                         >
                             Botivate
                         </a>

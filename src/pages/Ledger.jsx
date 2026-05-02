@@ -212,33 +212,33 @@ export default function Ledger() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 md:p-6 border border-green-200 shadow-sm flex flex-col justify-center">
-          <p className="text-gray-600 text-[10px] md:text-sm font-bold uppercase tracking-wider">Total Credits</p>
-          <p className="text-lg md:text-2xl font-black text-green-700 mt-1">
+        <div className="bg-slate-50 from-green-50 to-green-100 rounded-lg p-4 md:p-6 border border-green-200 shadow-sm flex flex-col justify-center">
+          <p className="text-gray-600 text-[10px] md:text-sm font-semibold  tracking-wider">Total Credits</p>
+          <p className="text-lg md:text-2xl font-semibold text-green-700 mt-1">
             {formatCurrency(statistics.totalDebit)}
           </p>
         </div>
-        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 md:p-6 border border-red-200 shadow-sm flex flex-col justify-center">
-          <p className="text-gray-600 text-[10px] md:text-sm font-bold uppercase tracking-wider">Total Expenses</p>
-          <p className="text-lg md:text-2xl font-black text-red-700 mt-1">
+        <div className="bg-slate-50 from-red-50 to-red-100 rounded-lg p-4 md:p-6 border border-red-200 shadow-sm flex flex-col justify-center">
+          <p className="text-gray-600 text-[10px] md:text-sm font-semibold  tracking-wider">Total Expenses</p>
+          <p className="text-lg md:text-2xl font-semibold text-red-700 mt-1">
             {formatCurrency(statistics.totalCredit)}
           </p>
         </div>
-        <div className={`rounded-lg p-4 md:p-6 border shadow-sm flex flex-col justify-center bg-gradient-to-br ${
+        <div className={`rounded-lg p-4 md:p-6 border shadow-sm flex flex-col justify-center bg-slate-50 ${
           statistics.balance >= 0 
             ? 'from-blue-50 to-blue-100 border-blue-200' 
             : 'from-orange-50 to-orange-100 border-orange-200'
         }`}>
-          <p className="text-gray-600 text-[10px] md:text-sm font-bold uppercase tracking-wider">Net Balance</p>
-          <p className={`text-lg md:text-2xl font-black mt-1 ${
+          <p className="text-gray-600 text-[10px] md:text-sm font-semibold  tracking-wider">Net Balance</p>
+          <p className={`text-lg md:text-2xl font-semibold mt-1 ${
             statistics.balance >= 0 ? 'text-blue-700' : 'text-orange-700'
           }`}>
             {formatCurrency(statistics.balance)}
           </p>
         </div>
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 md:p-6 border border-purple-200 shadow-sm flex flex-col justify-center">
-          <p className="text-gray-600 text-[10px] md:text-sm font-bold uppercase tracking-wider">Total Entries</p>
-          <p className="text-lg md:text-2xl font-black text-purple-700 mt-1">
+        <div className="bg-slate-50 from-purple-50 to-purple-100 rounded-lg p-4 md:p-6 border border-purple-200 shadow-sm flex flex-col justify-center">
+          <p className="text-gray-600 text-[10px] md:text-sm font-semibold  tracking-wider">Total Entries</p>
+          <p className="text-lg md:text-2xl font-semibold text-purple-700 mt-1">
             {statistics.entries}
           </p>
         </div>
@@ -253,34 +253,34 @@ export default function Ledger() {
             <div key={entry.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-2.5 relative flex flex-col gap-1.5 transition-all">
               <div className="flex justify-between items-center bg-gray-50 -mx-2.5 -mt-2.5 px-2.5 py-1.5 border-b border-gray-100 rounded-t-xl mb-0.5">
                 <span className="text-[9px] text-gray-500 font-medium font-mono">{entry.referenceId}</span>
-                <span className={`px-1.5 py-0.5 rounded text-[8px] font-medium tracking-widest uppercase ${
+                <span className={`px-1.5 py-0.5 rounded text-[8px] font-medium   ${
                   entry.type === 'CREDIT' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                 }`}>
                   {entry.type}
                 </span>
               </div>
 
-              <h3 className="font-medium text-gray-900 text-[13px] uppercase tracking-tight leading-tight mt-0.5">
+              <h3 className="font-medium text-gray-900 text-[13px]   leading-tight mt-0.5">
                 {entry.personName}
               </h3>
 
               <div className="grid grid-cols-2 gap-y-1.5 gap-x-2 text-xs mt-0.5">
                 <div>
-                  <p className="text-[9px] text-gray-400 font-medium mb-0 uppercase tracking-wider">Date</p>
+                  <p className="text-[9px] text-gray-400 font-medium mb-0  tracking-wider">Date</p>
                   <p className="font-normal text-gray-800 flex items-center gap-1">
                     <Calendar size={11} className="text-sky-500" />
                     <span className="text-[10px]">{formatDate(entry.date)}</span>
                   </p>
                 </div>
                 <div>
-                  <p className="text-[9px] text-gray-400 font-medium mb-0 uppercase tracking-wider">Amount</p>
-                  <p className={`font-medium text-[13px] tracking-tight ${entry.type === 'CREDIT' ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className="text-[9px] text-gray-400 font-medium mb-0  tracking-wider">Amount</p>
+                  <p className={`font-medium text-[13px]  ${entry.type === 'CREDIT' ? 'text-green-600' : 'text-red-600'}`}>
                     {entry.type === 'CREDIT' ? '+' : '-'}{formatCurrency(entry.amount)}
                   </p>
                 </div>
                 <div className="col-span-2 bg-gray-50/50 border border-gray-100 rounded-lg p-1.5 flex justify-between items-center mt-0.5">
-                  <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wider">Running Balance</p>
-                  <p className={`font-medium text-[14px] tracking-tight ${
+                  <p className="text-[9px] text-gray-400 font-medium  tracking-wider">Running Balance</p>
+                  <p className={`font-medium text-[14px]  ${
                     (entry.balance !== undefined ? entry.balance : entry.balanceAfter) >= 0 ? 'text-blue-600' : 'text-orange-600'
                   }`}>
                     {formatCurrency(entry.balance !== undefined ? entry.balance : entry.balanceAfter)}
@@ -313,10 +313,10 @@ export default function Ledger() {
             <tbody>
               {paginatedLedger.map((entry) => (
                 <tr key={entry.id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="px-4 py-2 text-center text-sm text-gray-800 font-medium tracking-tight whitespace-nowrap">{formatDate(entry.date)}</td>
+                  <td className="px-4 py-2 text-center text-sm text-gray-800 font-medium  whitespace-nowrap">{formatDate(entry.date)}</td>
                   <td className="px-4 py-2 text-center text-sm text-gray-700 font-semibold">{entry.personName}</td>
                   <td className="px-4 py-2 text-center text-sm">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold  tracking-wider ${
                       entry.type === 'CREDIT' 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-red-100 text-red-800'
@@ -324,17 +324,17 @@ export default function Ledger() {
                       {entry.type}
                     </span>
                   </td>
-                  <td className={`px-4 py-2 text-center text-sm font-bold ${
+                  <td className={`px-4 py-2 text-center text-sm font-semibold ${
                     entry.type === 'CREDIT' ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {entry.type === 'CREDIT' ? '+' : '-'}{formatCurrency(entry.amount)}
                   </td>
-                  <td className={`px-4 py-2 text-center text-sm font-bold ${
+                  <td className={`px-4 py-2 text-center text-sm font-semibold ${
                     (entry.balance !== undefined ? entry.balance : entry.balanceAfter) >= 0 ? 'text-blue-600' : 'text-orange-600'
                   }`}>
                     {formatCurrency(entry.balance !== undefined ? entry.balance : entry.balanceAfter)}
                   </td>
-                  <td className="px-4 py-2 text-center text-sm text-gray-500 font-mono tracking-tighter">
+                  <td className="px-4 py-2 text-center text-sm text-gray-500 font-mono er">
                     {entry.referenceId}
                   </td>
                 </tr>

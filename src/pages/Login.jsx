@@ -78,17 +78,17 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center p-6 relative z-10">
         <div className="w-full max-w-[420px] animate-soft-float">
           {/* Main Card */}
-          <div className="bg-white border border-slate-200/60 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.08)] p-10 md:p-12 space-y-8 relative overflow-hidden group transition-all duration-500 hover:shadow-[0_20px_60px_rgba(37,99,235,0.1)]">
+          <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] p-10 md:p-12 space-y-8 relative overflow-hidden group transition-all duration-500 hover:shadow-[0_20px_60px_rgba(37,99,235,0.1)]">
             
             {/* Header Section */}
             <div className="text-center space-y-3 relative">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 shadow-lg shadow-blue-200 mb-4 transform hover:rotate-3 transition-transform duration-300">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 shadow-sm shadow-blue-200 mb-4 transform hover:rotate-3 transition-transform duration-300">
                 <Lock className="text-white w-7 h-7" />
               </div>
-              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+              <h1 className="text-3xl font-semibold text-slate-900 ">
                 Petty <span className="text-blue-600">Cash</span>
               </h1>
-              <p className="text-slate-500 text-xs font-bold tracking-widest uppercase opacity-70">
+              <p className="text-slate-500 text-xs font-semibold   opacity-70">
                 Management System
               </p>
             </div>
@@ -97,7 +97,7 @@ const Login = () => {
             <form className="space-y-6" onSubmit={handleSubmit}>
               {/* User ID Field */}
               <div className="space-y-2">
-                <label htmlFor="id" className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                <label htmlFor="id" className="text-[11px] font-semibold text-slate-500   ml-1">
                   username
                 </label>
                 <div className="relative group/input">
@@ -118,7 +118,7 @@ const Login = () => {
 
               {/* Password Field */}
               <div className="space-y-2">
-                <label htmlFor="password" className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                <label htmlFor="password" className="text-[11px] font-semibold text-slate-500   ml-1">
                   password
                 </label>
                 <div className="relative group/input">
@@ -148,7 +148,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className={`w-full py-4 px-6 text-sm font-bold bg-blue-600 text-white rounded-2xl hover:bg-blue-700 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-blue-100 shadow-xl shadow-blue-200 transition-all duration-300 relative overflow-hidden group/btn ${
+                className={`w-full py-4 px-6 text-sm font-semibold bg-blue-600 text-white rounded-2xl hover:bg-blue-700 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-blue-100 shadow-sm shadow-blue-200 transition-all duration-300 relative overflow-hidden group/btn ${
                   submitting ? 'opacity-70 cursor-not-allowed' : ''
                 }`}
               >
@@ -159,7 +159,7 @@ const Login = () => {
                     <span className="tracking-wide">Authenticating...</span>
                   </div>
                 ) : (
-                  <span className="tracking-widest uppercase">Login</span>
+                  <span className=" ">Login</span>
                 )}
               </button>
             </form>
@@ -169,7 +169,7 @@ const Login = () => {
 
       {/* Footer */}
       <div className="py-8 text-center relative z-10">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">
+        <p className="text-[10px] font-semibold text-slate-400  tracking-[0.3em]">
           Powered By Botivate <span className="mx-2 text-slate-200">|</span> v4.0.1
         </p>
       </div>

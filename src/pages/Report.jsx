@@ -136,7 +136,7 @@ export default function Report() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Reports</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 ">Reports</h1>
           <p className="text-gray-500 text-sm mt-0.5">Analyze and export expense data</p>
         </div>
         <button 
@@ -194,26 +194,26 @@ export default function Report() {
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-900">{totalEntries}</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">{totalEntries}</h2>
           <p className="text-sm font-medium text-gray-500 mt-1">Total Entries</p>
         </div>
         <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-900">{formatCurrency(totalAmount)}</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">{formatCurrency(totalAmount)}</h2>
           <p className="text-sm font-medium text-gray-500 mt-1">Total Amount</p>
         </div>
         <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-900">{formatCurrency(approvedAmount)}</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">{formatCurrency(approvedAmount)}</h2>
           <p className="text-sm font-medium text-gray-500 mt-1">Approved Amount</p>
         </div>
         <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-900">{pendingCount}</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">{pendingCount}</h2>
           <p className="text-sm font-medium text-gray-500 mt-1">Pending Count</p>
         </div>
       </div>
 
       {/* Chart Section */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-6">Group-wise Spending</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">Group-wise Spending</h3>
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -245,20 +245,20 @@ export default function Report() {
       {/* Table Section */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-200 bg-gray-50/50">
-          <h3 className="text-sm font-bold text-gray-700">{totalEntries} records</h3>
+          <h3 className="text-sm font-semibold text-gray-700">{totalEntries} records</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50/50">
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Voucher</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Amount</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Mode</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Status</th>
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">By</th>
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500  tracking-wider">Voucher</th>
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500  tracking-wider">Date</th>
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500  tracking-wider">Category</th>
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500  tracking-wider">Description</th>
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500  tracking-wider text-right">Amount</th>
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500  tracking-wider text-center">Mode</th>
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500  tracking-wider text-center">Status</th>
+                <th className="px-5 py-4 text-xs font-semibold text-gray-500  tracking-wider">By</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -303,12 +303,12 @@ export default function Report() {
                     
                     {/* AMOUNT */}
                     <td className="px-5 py-4 text-right">
-                      <span className="text-[14px] font-bold text-gray-900">{formatCurrency(expense.amount)}</span>
+                      <span className="text-[14px] font-semibold text-gray-900">{formatCurrency(expense.amount)}</span>
                     </td>
                     
                     {/* MODE */}
                     <td className="px-5 py-4 text-center">
-                      <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md text-[11px] font-medium border border-gray-200 uppercase tracking-wide">
+                      <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md text-[11px] font-medium border border-gray-200  tracking-wide">
                         {expense.paymentMode || 'Cash'}
                       </span>
                     </td>

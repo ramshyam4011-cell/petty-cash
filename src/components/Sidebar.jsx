@@ -60,7 +60,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
       <aside className={`
         fixed top-0 left-0 h-full z-[70] bg-white border-r border-slate-200 transition-all duration-500 ease-in-out
         ${isCollapsed ? 'lg:w-20' : 'lg:w-64'} 
-        ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0 shadow-none'}
+        ${isOpen ? 'translate-x-0 shadow-sm' : '-translate-x-full lg:translate-x-0 shadow-none'}
         w-64 lg:shadow-none
       `}>
         {/* Desktop Collapse Toggle - Hidden on mobile */}
@@ -77,12 +77,12 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
           <div className={`h-24 flex items-center border-b border-slate-100 bg-white sticky top-0 z-10 transition-all duration-500 px-5 
             ${isCollapsed ? 'lg:justify-center justify-between' : 'justify-between'}`}>
             <div className="flex items-center gap-3 group cursor-pointer overflow-hidden min-w-0">
-              <div className="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100 flex-shrink-0 group-hover:rotate-6 transition-all duration-500">
+              <div className="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0 group-hover:rotate-6 transition-all duration-500">
                 <Wallet size={24} className="text-white" />
               </div>
               <div className={`flex flex-col animate-in fade-in slide-in-from-left-4 duration-500 overflow-hidden ${isCollapsed ? 'lg:hidden' : ''}`}>
-                <span className="text-2xl font-black text-slate-900 tracking-tight leading-none truncate">PeteCash</span>
-                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mt-2 truncate">Enterprise</span>
+                <span className="text-2xl font-semibold text-slate-900  leading-none truncate">PeteCash</span>
+                <span className="text-[10px] font-semibold text-indigo-600   mt-2 truncate">Enterprise</span>
               </div>
             </div>
 
@@ -99,7 +99,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
           <nav className="flex-1 overflow-y-auto py-8 px-3.5 space-y-2.5 scrollbar-hide">
             {!isCollapsed && (
               <div className="px-3 mb-4 animate-in fade-in duration-700">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Operational</p>
+                <p className="text-[10px] font-semibold text-slate-400  ">Operational</p>
               </div>
             )}
             
@@ -111,9 +111,9 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
                   to={item.path}
                   onClick={onClose}
                   className={`
-                    flex items-center gap-4 px-4 py-3.5 rounded-[1.25rem] transition-all duration-300 group relative
+                    flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 group relative
                     ${isActive 
-                      ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100/50' 
+                      ? 'bg-indigo-600 text-white shadow-sm' 
                       : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600'}
                     ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}
                   `}
@@ -122,7 +122,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
                     <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
                   </div>
                   
-                  <span className={`font-bold text-sm tracking-tight whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-500 
+                  <span className={`font-semibold text-sm  whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-500 
                     ${isCollapsed ? 'lg:hidden' : ''}`}>
                     {item.label}
                   </span>
@@ -134,7 +134,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
 
                   {/* Tooltip for Collapsed State */}
                   {isCollapsed && (
-                    <div className="absolute left-full ml-5 px-4 py-2.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all translate-x-3 group-hover:translate-x-0 z-[100] whitespace-nowrap shadow-2xl lg:block hidden">
+                    <div className="absolute left-full ml-5 px-4 py-2.5 bg-slate-900 text-white text-[10px] font-semibold   rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all translate-x-3 group-hover:translate-x-0 z-[100] whitespace-nowrap shadow-sm lg:block hidden">
                       {item.label}
                       <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-y-[6px] border-y-transparent border-r-[6px] border-r-slate-900"></div>
                     </div>
@@ -146,10 +146,10 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
 
           {/* User & Security Section */}
           <div className="p-4 mt-auto border-t border-slate-50 bg-slate-50/30">
-            <div className={`rounded-[2rem] p-4 transition-all duration-500 ${isCollapsed ? 'lg:px-0 lg:flex lg:flex-col lg:items-center lg:gap-4 bg-white border border-slate-100 shadow-sm' : 'bg-white border border-slate-100 shadow-sm'}`}>
+            <div className={`rounded-2xl p-4 transition-all duration-500 ${isCollapsed ? 'lg:px-0 lg:flex lg:flex-col lg:items-center lg:gap-4 bg-white border border-slate-100 shadow-sm' : 'bg-white border border-slate-100 shadow-sm'}`}>
               <div className={`flex items-center gap-3 ${isCollapsed ? 'lg:flex-col mb-5 lg:mb-0' : 'mb-5'}`}>
                 <div className="relative group flex-shrink-0">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-sm transition-all duration-500 ${
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-semibold shadow-sm transition-all duration-500 ${
                     isCollapsed ? 'lg:bg-indigo-600 lg:text-white bg-slate-50 text-indigo-600 border-2 border-indigo-50' : 'bg-slate-50 text-indigo-600 border-2 border-indigo-50'
                   }`}>
                     {user?.name?.charAt(0).toUpperCase() || <User size={22} />}
@@ -158,8 +158,8 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
                 </div>
                 
                 <div className={`flex-1 min-w-0 animate-in fade-in duration-700 ${isCollapsed ? 'lg:hidden' : ''}`}>
-                  <p className="text-sm font-black text-slate-900 truncate uppercase tracking-tight">{user?.name || 'Authorized'}</p>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                  <p className="text-sm font-semibold text-slate-900 truncate  ">{user?.name || 'Authorized'}</p>
+                  <p className="text-[9px] font-semibold text-slate-400   mt-1">
                     {user?.role === 'ADMIN' ? 'Security Clearance: A' : 'Security Clearance: B'}
                   </p>
                 </div>
@@ -168,7 +168,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
               {!isCollapsed ? (
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-3 w-full px-6 py-3.5 rounded-2xl bg-slate-900 text-white hover:bg-rose-600 transition-all duration-300 font-black text-[10px] uppercase tracking-[0.2em] group shadow-lg shadow-slate-200"
+                  className="flex items-center justify-center gap-3 w-full px-6 py-3.5 rounded-2xl bg-slate-900 text-white hover:bg-rose-600 transition-all duration-300 font-semibold text-[10px]   group shadow-lg shadow-slate-200"
                 >
                   <LogOutIcon size={16} strokeWidth={3} className="group-hover:-translate-x-1 transition-transform" />
                   <span>Terminate</span>
@@ -177,7 +177,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
                 <div className="w-full lg:contents">
                    <button
                     onClick={handleLogout}
-                    className={`flex items-center justify-center gap-3 w-full px-6 py-3.5 rounded-2xl bg-slate-900 text-white hover:bg-rose-600 transition-all duration-300 font-black text-[10px] uppercase tracking-[0.2em] group shadow-lg shadow-slate-200 ${isCollapsed ? 'lg:hidden' : ''}`}
+                    className={`flex items-center justify-center gap-3 w-full px-6 py-3.5 rounded-2xl bg-slate-900 text-white hover:bg-rose-600 transition-all duration-300 font-semibold text-[10px]   group shadow-lg shadow-slate-200 ${isCollapsed ? 'lg:hidden' : ''}`}
                   >
                     <LogOutIcon size={16} strokeWidth={3} className="group-hover:-translate-x-1 transition-transform" />
                     <span>Terminate</span>

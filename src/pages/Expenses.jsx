@@ -263,7 +263,7 @@ export default function Expenses() {
         <div className="flex gap-2 w-full lg:w-auto flex-shrink-0 border-b lg:border-none border-gray-100 pb-2 lg:pb-0 mb-1 lg:mb-0">
           <button
             onClick={() => setActiveTab('pending')}
-            className={`py-1.5 px-3 font-bold transition text-[11px] md:text-sm rounded-md whitespace-nowrap ${activeTab === 'pending'
+            className={`py-1.5 px-3 font-semibold transition text-[11px] md:text-sm rounded-md whitespace-nowrap ${activeTab === 'pending'
               ? 'bg-indigo-50 text-indigo-700'
               : 'text-gray-500 hover:bg-gray-50'
               }`}
@@ -272,7 +272,7 @@ export default function Expenses() {
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`py-1.5 px-3 font-bold transition text-[11px] md:text-sm rounded-md whitespace-nowrap ${activeTab === 'history'
+            className={`py-1.5 px-3 font-semibold transition text-[11px] md:text-sm rounded-md whitespace-nowrap ${activeTab === 'history'
               ? 'bg-indigo-50 text-indigo-700'
               : 'text-gray-500 hover:bg-gray-50'
               }`}
@@ -391,9 +391,9 @@ export default function Expenses() {
       {/* Form Section Modal */}
       {showFormModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
             <div className="p-3 border-b border-gray-200 flex justify-between items-center bg-gray-50 flex-shrink-0">
-              <h2 className="text-lg font-bold text-gray-900">Expense Entry Form</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Expense Entry Form</h2>
               <button type="button" onClick={() => setShowFormModal(false)} className="text-gray-400 hover:text-red-500 transition-colors">
                 <X size={24} />
               </button>
@@ -564,7 +564,7 @@ export default function Expenses() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-2 px-6 rounded-lg hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="flex-1 bg-indigo-600 from-orange-500 to-orange-600 text-white font-semibold py-2 px-6 rounded-lg hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
                     {loading ? 'Submitting...' : 'Submit Expense'}
                   </button>
@@ -602,21 +602,21 @@ export default function Expenses() {
                     {expense.sn.split('-')[1] || expense.sn.slice(-2)}
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 text-[13px] uppercase tracking-tight leading-tight">
+                    <h3 className="font-medium text-gray-900 text-[13px]   leading-tight">
                       {expense.personName}
                     </h3>
-                    <span className="text-[9px] font-medium text-indigo-500 uppercase tracking-wider bg-indigo-50/50 px-1.5 rounded mt-0.5 inline-block">{expense.groupHead}</span>
+                    <span className="text-[9px] font-medium text-indigo-500  tracking-wider bg-indigo-50/50 px-1.5 rounded mt-0.5 inline-block">{expense.groupHead}</span>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-0.5">
-                  <span className="font-medium text-rose-600 text-[15px] tracking-tight">{formatCurrency(expense.amount)}</span>
+                  <span className="font-medium text-rose-600 text-[15px] ">{formatCurrency(expense.amount)}</span>
                   <div className="flex gap-1" >
                     {activeTab === 'history' && (
-                      <span className={`px-1.5 rounded text-[8px] font-medium tracking-widest uppercase ${expense.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                      <span className={`px-1.5 rounded text-[8px] font-medium   ${expense.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
                         {expense.status}
                       </span>
                     )}
-                    <span className="bg-sky-100/80 text-sky-700 px-1.5 rounded text-[8px] font-medium tracking-widest uppercase">
+                    <span className="bg-sky-100/80 text-sky-700 px-1.5 rounded text-[8px] font-medium  ">
                       {expense.paymentMode}
                     </span>
                   </div>
@@ -624,14 +624,14 @@ export default function Expenses() {
               </div>
 
               {/* Remarks and Date */}
-              <div className="bg-gradient-to-r from-slate-50 to-indigo-50/30 rounded-lg p-2 border border-slate-100">
+              <div className="bg-indigo-600 from-slate-50 to-indigo-50/30 rounded-lg p-2 border border-slate-100">
                 <div className="flex items-center gap-1 mb-1 border-b border-slate-200/60 pb-1">
                    <Calendar size={11} className="text-indigo-400" />
-                   <span className="text-[10px] font-medium text-slate-700 tracking-tight">{formatDate(expense.date)}</span>
+                   <span className="text-[10px] font-medium text-slate-700 ">{formatDate(expense.date)}</span>
                    <span className="text-[9px] text-slate-400 font-medium ml-auto tracking-wider">REF: {expense.sn}</span>
                 </div>
                 <div>
-                  <p className="text-[9px] text-indigo-500 font-medium mb-0 uppercase tracking-wider">Remarks</p>
+                  <p className="text-[9px] text-indigo-500 font-medium mb-0  tracking-wider">Remarks</p>
                   <p className="text-slate-700 text-[11px] leading-snug font-normal">{expense.remarks || 'No remarks provided.'}</p>
                 </div>
               </div>
@@ -642,7 +642,7 @@ export default function Expenses() {
                   <div className="grid grid-cols-2 gap-2 mt-0.5">
                     <button
                       onClick={() => handleApproveExpense(expense)}
-                      className="bg-gradient-to-tr from-emerald-500 to-emerald-400 text-white hover:from-emerald-600 hover:to-emerald-500 py-1.5 rounded-lg text-xs font-medium flex items-center justify-center gap-1 shadow-sm shadow-emerald-200 transition-all"
+                      className="bg-indigo-600 from-emerald-500 to-emerald-400 text-white hover:from-emerald-600 hover:to-emerald-500 py-1.5 rounded-lg text-xs font-medium flex items-center justify-center gap-1 shadow-sm shadow-emerald-200 transition-all"
                     >
                       <Check size={13} strokeWidth={2.5} /> Approve
                     </button>
@@ -674,21 +674,21 @@ export default function Expenses() {
         {/* Desktop View: Table */}
         <div className="hidden md:block overflow-x-auto overflow-y-auto h-[calc(108vh-300px)] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <table className="w-full min-w-[800px] relative">
-            <thead className="bg-gradient-to-r from-sky-600 to-indigo-600 sticky top-0 z-10 shadow-md">
+            <thead className="bg-indigo-600 from-sky-600 to-indigo-600 sticky top-0 z-10 shadow-md">
               <tr>
-                <th className="px-4 py-3.5 text-center text-xs font-bold text-white uppercase tracking-wider border-b border-indigo-700/50">SN</th>
-                <th className="px-4 py-3.5 text-center text-xs font-bold text-white uppercase tracking-wider border-b border-indigo-700/50">Person</th>
-                <th className="px-4 py-3.5 text-center text-xs font-bold text-white uppercase tracking-wider border-b border-indigo-700/50">Date</th>
-                <th className="px-4 py-3.5 text-center text-xs font-bold text-white uppercase tracking-wider border-b border-indigo-700/50">Amount</th>
-                <th className="px-4 py-3.5 text-center text-xs font-bold text-white uppercase tracking-wider border-b border-indigo-700/50">Mode</th>
-                <th className="px-4 py-3.5 text-center text-xs font-bold text-white uppercase tracking-wider border-b border-indigo-700/50">Group</th>
-                <th className="px-4 py-3.5 text-center text-xs font-bold text-white uppercase tracking-wider border-b border-indigo-700/50">Image</th>
-                <th className="px-4 py-3.5 text-left text-xs font-bold text-white uppercase tracking-wider border-b border-indigo-700/50">Remarks</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">SN</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">Person</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">Date</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">Amount</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">Mode</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">Group</th>
+                <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">Image</th>
+                <th className="px-4 py-3.5 text-left text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">Remarks</th>
                 {activeTab === 'pending' && (
-                  <th className="px-4 py-3.5 text-center text-xs font-bold text-white uppercase tracking-wider border-b border-indigo-700/50">Action</th>
+                  <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">Action</th>
                 )}
                 {activeTab === 'history' && (
-                  <th className="px-4 py-3.5 text-center text-xs font-bold text-white uppercase tracking-wider border-b border-indigo-700/50">Status</th>
+                  <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">Status</th>
                 )}
               </tr>
             </thead>
@@ -736,7 +736,7 @@ export default function Expenses() {
                   )}
                   {activeTab === 'history' && (
                     <td className="px-4 py-3 text-center text-sm">
-                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${expense.status === 'APPROVED'
+                      <span className={`px-2 py-1 rounded text-[10px] font-semibold  tracking-wider ${expense.status === 'APPROVED'
                         ? 'bg-green-100 text-green-700'
                         : 'bg-red-100 text-red-700'
                         }`}>
@@ -762,8 +762,8 @@ export default function Expenses() {
           {/* Mobile Totals Row */}
           {paginatedExpenses.length > 0 && (
             <div className="flex w-full lg:w-auto justify-between lg:hidden items-center text-xs border-b border-gray-200 pb-2 mb-1 px-1">
-              <div className="flex flex-col"><span className="text-gray-500 text-[9px] uppercase font-medium tracking-wider mb-0.5">Page Total</span> <span className="font-medium text-rose-600 text-[13px]">{formatCurrency(pageTotalAmount)}</span></div>
-              <div className="flex flex-col text-right"><span className="text-gray-500 text-[9px] uppercase font-medium tracking-wider mb-0.5">Total Filtered</span> <span className="font-medium text-gray-900 text-[13px]">{formatCurrency(totalAmount)}</span></div>
+              <div className="flex flex-col"><span className="text-gray-500 text-[9px]  font-medium tracking-wider mb-0.5">Page Total</span> <span className="font-medium text-rose-600 text-[13px]">{formatCurrency(pageTotalAmount)}</span></div>
+              <div className="flex flex-col text-right"><span className="text-gray-500 text-[9px]  font-medium tracking-wider mb-0.5">Total Filtered</span> <span className="font-medium text-gray-900 text-[13px]">{formatCurrency(totalAmount)}</span></div>
             </div>
           )}
 

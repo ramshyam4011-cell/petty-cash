@@ -249,30 +249,30 @@ export default function Settings() {
 
   return (
     <>
-    <div className="p-0 md:p-8 space-y-8 md:space-y-12 animate-in fade-in duration-1000 bg-slate-50/50 min-h-screen">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-10 animate-in fade-in duration-500">
       
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 px-4 md:px-0">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
-          <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-600 font-bold text-[10px] uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full mb-3 shadow-sm">
+          <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-600 font-semibold text-[10px] px-3.5 py-1.5 rounded-full mb-3 shadow-sm">
             <Users size={12} />
             <span>Identity Governance</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-none mb-2">System Settings</h1>
-          <p className="text-slate-500 font-medium italic">Manage security clearance and operational placement for all personnel</p>
+          <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 leading-none mb-2">System Settings</h1>
+          <p className="text-slate-500 font-medium italic">Manage security clearance and operational placement for personnel</p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
           <button
             onClick={fetchUsers}
             disabled={fetching}
-            className="w-full sm:w-auto p-4 bg-white border border-slate-200 rounded-2xl text-slate-600 hover:text-indigo-600 hover:shadow-xl transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+            className="w-full sm:w-auto p-4 bg-white border border-slate-200 rounded-2xl text-slate-600 hover:text-indigo-600 hover:shadow-sm transition-all active:scale-95 disabled:opacity-50 shadow-sm"
           >
             <RefreshCw size={20} className={fetching ? 'animate-spin' : ''} />
           </button>
           <button
             onClick={openAddModal}
-            className="w-full sm:w-auto flex items-center justify-center gap-2.5 bg-slate-900 text-white px-8 py-4 rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 text-sm uppercase tracking-widest"
+            className="w-full sm:w-auto flex items-center justify-center gap-2.5 bg-slate-900 text-white px-8 py-4 rounded-2xl font-semibold shadow-sm hover:bg-slate-800 transition-all active:scale-95 text-sm"
           >
             <UserPlus size={20} strokeWidth={3} /> Add Identity
           </button>
@@ -280,20 +280,19 @@ export default function Settings() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {[
           { label: 'Total Accounts', value: totalUsers, icon: Users, color: 'indigo' },
           { label: 'Clearance: Admin', value: adminCount, icon: ShieldCheck, color: 'purple' },
           { label: 'Clearance: User', value: userCount, icon: UserCheck, color: 'emerald' }
         ].map(stat => (
-          <div key={stat.label} className="group bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
-            <div className={`absolute top-0 right-0 w-32 h-32 bg-${stat.color}-50 rounded-full -mr-16 -mt-16 opacity-40 group-hover:scale-110 transition-transform duration-700`}></div>
+          <div key={stat.label} className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100 transition-all duration-300 relative overflow-hidden">
             <div className="relative flex items-start justify-between">
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{stat.label}</p>
-                <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{stat.value}</h3>
+                <p className="text-[10px] font-semibold text-slate-400 mb-2">{stat.label}</p>
+                <h3 className="text-4xl font-semibold text-slate-900">{stat.value}</h3>
               </div>
-              <div className={`p-4 bg-white shadow-xl shadow-slate-100 rounded-2xl text-${stat.color}-600`}>
+              <div className={`p-4 bg-slate-50 rounded-2xl text-${stat.color}-600`}>
                 <stat.icon size={24} strokeWidth={2.5} />
               </div>
             </div>
@@ -302,98 +301,92 @@ export default function Settings() {
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white md:rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col mx-0 md:mx-0">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
         <div className="p-6 border-b border-slate-100 bg-white flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="relative w-full md:w-96 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
             <input
               type="text"
-              placeholder="Filter by name or username..."
+              placeholder="Filter identities..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 outline-none shadow-inner transition-all placeholder:text-slate-300"
+              className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-700 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-300 shadow-sm"
             />
           </div>
-          <div className="hidden md:flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-4 py-2 bg-slate-50 rounded-xl">
+          <div className="hidden md:flex items-center gap-2 text-[10px] font-semibold text-slate-400 px-4 py-2 bg-slate-50 rounded-xl">
             <Building2 size={14} />
-            System Authority Matrix
+            Authority Matrix
           </div>
         </div>
 
         {/* Mobile Identity Cards */}
-        <div className="md:hidden flex flex-col gap-6 p-4 pb-48 bg-slate-50/50">
+        <div className="md:hidden flex flex-col gap-4 p-4 pb-24 bg-slate-50/50">
           {fetching ? (
              [1, 2, 3].map(i => (
-               <div key={i} className="h-48 bg-white rounded-[2rem] animate-pulse border border-slate-100" />
+               <div key={i} className="h-48 bg-white rounded-2xl animate-pulse border border-slate-100" />
              ))
           ) : filteredUsers.length === 0 ? (
              <div className="text-center py-20">
                 <Search size={40} className="mx-auto mb-4 text-slate-200" />
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No matching identities</p>
+                <p className="text-[10px] font-semibold text-slate-400">No identities discovered</p>
              </div>
           ) : (
              filteredUsers.map(user => (
-               <div key={user.id} className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col gap-5 relative overflow-hidden active:scale-[0.98] transition-transform">
-                  <div className={`absolute top-0 left-0 w-1.5 h-full ${user.role === 'ADMIN' ? 'bg-purple-500' : 'bg-emerald-500'}`}></div>
+               <div key={user.id} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4 relative overflow-hidden active:scale-[0.98] transition-transform">
+                  <div className={`absolute top-0 left-0 w-1 h-full ${user.role === 'ADMIN' ? 'bg-indigo-600' : 'bg-emerald-500'}`}></div>
                   
-                  <div className="flex justify-between items-start pl-2">
+                  <div className="flex justify-between items-start">
                     <div className="flex items-center gap-4">
-                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-black shadow-lg ${getAvatarColor(user.name)}`}>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-semibold ${getAvatarColor(user.name)}`}>
                         {user.name.charAt(0).toUpperCase()}
                       </div>
-                      <div className="flex flex-col gap-0.5">
-                        <h3 className="font-black text-slate-900 text-lg leading-tight uppercase tracking-tight">{user.name}</h3>
-                        <code className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">@{user.id}</code>
+                      <div className="flex flex-col">
+                        <h3 className="font-semibold text-slate-900 leading-tight">{user.name}</h3>
+                        <code className="text-[10px] font-semibold text-indigo-600">@{user.id}</code>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                       <button onClick={() => openEditModal(user)} className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:text-indigo-600 transition-colors">
-                          <Edit2 size={18} strokeWidth={2.5} />
-                       </button>
-                    </div>
+                    <button onClick={() => openEditModal(user)} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-indigo-600 transition-colors">
+                      <Edit2 size={18} strokeWidth={2.5} />
+                    </button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 bg-slate-50/80 p-4 rounded-2xl border border-slate-100/50 ml-2">
-                     <div className="space-y-1.5">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Clearance</span>
-                        <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 ${
-                           user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'
+                  <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl">
+                     <div className="space-y-1">
+                        <span className="text-[9px] font-semibold text-slate-400 block">Clearance</span>
+                        <span className={`px-2 py-0.5 rounded-lg text-[9px] font-semibold inline-flex items-center gap-1 ${
+                           user.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
                         }`}>
                            {user.role === 'ADMIN' ? <ShieldCheck size={10} /> : <UserCheck size={10} />}
                            {user.role}
                         </span>
                      </div>
-                     <div className="text-right space-y-1.5 border-l border-slate-200 pl-3">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Operational Placement</span>
-                        <p className="text-[10px] font-black text-slate-900 truncate uppercase tracking-tight">{user.branch}</p>
+                     <div className="text-right space-y-1">
+                        <span className="text-[9px] font-semibold text-slate-400 block">Placement</span>
+                        <p className="text-[10px] font-semibold text-slate-900 truncate">{user.branch}</p>
                      </div>
                   </div>
 
-                  <div className="pl-2 space-y-2">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Authorized Modules</span>
-                    <div className="flex flex-wrap gap-1.5">
-                       {user.pageAccess.map(page => (
-                         <span key={page} className="px-2 py-0.5 bg-white border border-slate-200 rounded-lg text-[9px] font-black text-slate-600 uppercase tracking-tight">
-                            {page}
-                         </span>
-                       ))}
-                    </div>
+                  <div className="flex flex-wrap gap-1.5">
+                     {user.pageAccess.map(page => (
+                       <span key={page} className="px-2 py-0.5 bg-white border border-slate-200 rounded-lg text-[9px] font-semibold text-slate-500">
+                          {page}
+                       </span>
+                     ))}
                   </div>
 
-                  <div className="flex justify-between items-center pl-2 pt-2">
+                  <div className="flex justify-between items-center pt-2">
                     {authUser?.id === user.id ? (
-                      <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-1.5 bg-indigo-50 px-3 py-1.5 rounded-full">
-                        <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></div>
-                        Current Authority Session
+                      <span className="text-[9px] font-semibold text-indigo-600 flex items-center gap-1.5 bg-indigo-50 px-3 py-1 rounded-full">
+                        <div className="w-1 h-1 bg-indigo-500 rounded-full animate-pulse"></div>
+                        Current Authority
                       </span>
                     ) : <div></div>}
                     <button 
                       onClick={() => handleDeleteUser(user.id)}
                       disabled={deletingId === user.id}
-                      className="flex items-center gap-2 text-rose-500 font-black text-[10px] uppercase tracking-widest hover:text-rose-700 transition-colors"
+                      className="flex items-center gap-1.5 text-rose-500 font-semibold text-[10px] hover:text-rose-700 transition-colors"
                     >
-                      {deletingId === user.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={14} strokeWidth={3} />}
-                      Purge Identity
+                      <Trash2 size={14} strokeWidth={3} /> Purge
                     </button>
                   </div>
                </div>
@@ -406,12 +399,12 @@ export default function Settings() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Identity Profile</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">System ID</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Clearance Level</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Deployment Placement</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Module Access</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Administrative Actions</th>
+                <th className="px-6 py-5 text-[10px] font-semibold text-slate-400">Identity Profile</th>
+                <th className="px-6 py-5 text-[10px] font-semibold text-slate-400">System ID</th>
+                <th className="px-6 py-5 text-[10px] font-semibold text-slate-400">Clearance Level</th>
+                <th className="px-6 py-5 text-[10px] font-semibold text-slate-400">Placement</th>
+                <th className="px-6 py-5 text-[10px] font-semibold text-slate-400">Module Access</th>
+                <th className="px-6 py-5 text-[10px] font-semibold text-slate-400 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -425,7 +418,7 @@ export default function Settings() {
                 <tr>
                   <td colSpan="6" className="px-6 py-20 text-center bg-slate-50/50">
                     <Search size={40} className="mx-auto mb-4 text-slate-200" />
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No matching identities discovered</p>
+                    <p className="text-[10px] font-semibold text-slate-400">No identities discovered</p>
                   </td>
                 </tr>
               ) : (
@@ -433,25 +426,25 @@ export default function Settings() {
                   <tr key={user.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-2xl shadow-lg flex items-center justify-center text-white text-lg font-black ${getAvatarColor(user.name)} group-hover:scale-110 transition-transform`}>
+                        <div className={`w-10 h-10 rounded-xl shadow-sm flex items-center justify-center text-white text-lg font-semibold ${getAvatarColor(user.name)}`}>
                           {user.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-black text-slate-900 uppercase tracking-tight">{user.name}</span>
+                          <span className="font-semibold text-slate-900">{user.name}</span>
                           {authUser?.id === user.id && (
-                            <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-1">
-                              <div className="w-1 h-1 bg-indigo-500 rounded-full"></div> Current Session
+                            <span className="text-[9px] font-semibold text-indigo-600 flex items-center gap-1">
+                              <div className="w-1 h-1 bg-indigo-500 rounded-full animate-pulse"></div> Current Session
                             </span>
                           )}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                      <code className="text-xs font-black font-mono bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg border border-slate-200">@{user.id}</code>
+                      <code className="text-[11px] font-semibold font-mono bg-slate-50 text-slate-600 px-2 py-0.5 rounded-lg border border-slate-200">@{user.id}</code>
                     </td>
                     <td className="px-6 py-5">
-                      <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border ${user.role === 'ADMIN'
-                          ? 'bg-purple-50 text-purple-700 border-purple-100'
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-semibold border ${user.role === 'ADMIN'
+                          ? 'bg-indigo-50 text-indigo-700 border-indigo-100'
                           : 'bg-emerald-50 text-emerald-700 border-emerald-100'
                         }`}>
                         {user.role === 'ADMIN' ? <ShieldCheck size={12} strokeWidth={2.5} /> : <UserCheck size={12} strokeWidth={2.5} />}
@@ -459,19 +452,15 @@ export default function Settings() {
                       </span>
                     </td>
                     <td className="px-6 py-5">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-700 uppercase tracking-tight">
-                          <MapPin size={12} className="text-slate-400" strokeWidth={2.5} /> {user.branch}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                          <Building2 size={10} strokeWidth={2.5} /> {user.department}
-                        </div>
+                      <div className="flex flex-col">
+                        <span className="text-[12px] font-semibold text-slate-700 leading-tight">{user.branch}</span>
+                        <span className="text-[10px] font-semibold text-slate-400">{user.department}</span>
                       </div>
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex flex-wrap gap-1 max-w-[250px]">
                         {user.pageAccess.map(page => (
-                          <span key={page} className="text-[9px] font-black bg-white border border-slate-200 text-slate-500 px-2 py-0.5 rounded-md shadow-sm">
+                          <span key={page} className="text-[9px] font-semibold bg-white border border-slate-200 text-slate-500 px-2 py-0.5 rounded-md shadow-sm">
                             {page}
                           </span>
                         ))}
@@ -479,19 +468,10 @@ export default function Settings() {
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex gap-2 justify-end">
-                        <button
-                          onClick={() => openEditModal(user)}
-                          className="p-2.5 bg-white border border-slate-100 rounded-xl text-indigo-600 shadow-sm hover:shadow-lg hover:border-indigo-100 hover:-translate-y-0.5 transition-all active:scale-95"
-                          title="Modify Clearance"
-                        >
+                        <button onClick={() => openEditModal(user)} className="p-2 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-500 transition-all shadow-sm active:scale-95">
                           <Edit2 size={16} strokeWidth={3} />
                         </button>
-                        <button
-                          onClick={() => handleDeleteUser(user.id)}
-                          disabled={deletingId === user.id}
-                          className="p-2.5 bg-white border border-slate-100 rounded-xl text-rose-500 shadow-sm hover:shadow-lg hover:border-rose-100 hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-50"
-                          title="Purge Identity"
-                        >
+                        <button onClick={() => handleDeleteUser(user.id)} disabled={deletingId === user.id} className="p-2 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-rose-500 hover:border-rose-500 transition-all shadow-sm active:scale-95 disabled:opacity-50">
                           {deletingId === user.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} strokeWidth={3} />}
                         </button>
                       </div>
@@ -504,150 +484,133 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Persistence Identity Logo */}
-      <div className="flex items-center justify-center py-12 opacity-30 grayscale pointer-events-none">
+      <div className="flex items-center justify-center py-12 opacity-20 grayscale pointer-events-none">
          <img src="/logo.png" alt="Identity Matrix" className="h-6" />
       </div>
     </div>
 
-    {/* Professional Identity Modal */}
+    {/* Identity Modal */}
     {isModalOpen && (
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-0 md:p-4 animate-in fade-in duration-500">
-        <div className="bg-white md:rounded-[3rem] shadow-2xl w-full max-w-2xl flex flex-col h-full md:h-auto md:max-h-[90vh] overflow-hidden border border-white/20 animate-in slide-in-from-bottom-10 duration-500">
+      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+        <div className="bg-white rounded-2xl shadow-sm w-full max-w-xl overflow-hidden border border-white/20 animate-in zoom-in-95 duration-300">
           
           {/* Modal Header */}
-          <div className="p-8 md:p-10 pb-4 flex justify-between items-center relative overflow-hidden">
-             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500"></div>
-             <div className="flex items-center gap-5">
-                <div className={`p-4 rounded-2xl text-white shadow-2xl ${editingUserId ? 'bg-indigo-600 shadow-indigo-200' : 'bg-emerald-500 shadow-emerald-200'}`}>
-                   {editingUserId ? <Edit2 size={24} strokeWidth={3} /> : <UserPlus size={24} strokeWidth={3} />}
-                </div>
-                <div>
-                   <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-none mb-1">
-                      {editingUserId ? 'Modify Identity' : 'Register Identity'}
-                   </h2>
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Security Placement Protocol</p>
-                </div>
+          <div className="px-8 py-7 border-b border-slate-100 flex items-center justify-between bg-white relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-600"></div>
+             <div>
+                <h2 className="text-2xl font-semibold text-slate-900 leading-none mb-1">
+                   {editingUserId ? 'Modify Identity' : 'Register Identity'}
+                </h2>
+                <p className="text-[10px] font-semibold text-slate-400">Personnel Protocol</p>
              </div>
-             <button
-               onClick={closeModal}
-               className="p-3 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all active:scale-95"
-             >
-               <X size={24} strokeWidth={3} />
+             <button onClick={closeModal} className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
+               <X size={22} strokeWidth={3} />
              </button>
           </div>
 
-          <div className="p-8 md:p-10 pt-4 space-y-8 overflow-y-auto custom-scrollbar flex-1">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest ml-1">Legal Name</label>
+          <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-semibold text-slate-400 ml-1">Legal Name</label>
                 <input
                   type="text"
-                  placeholder="Personnel Name"
+                  placeholder="Full Name"
                   value={newUser.name}
                   onChange={e => setNewUser({ ...newUser, name: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 font-black text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-300 shadow-sm"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-300 shadow-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest ml-1">System UserID</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-semibold text-slate-400 ml-1">System ID</label>
                 <input
                   type="text"
-                  placeholder="Unique ID"
+                  placeholder="Username"
                   value={newUser.id}
                   disabled={!!editingUserId}
                   onChange={e => setNewUser({ ...newUser, id: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 font-black text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-300 disabled:opacity-50 shadow-sm"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-300 disabled:opacity-50 shadow-sm"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest ml-1">Access Credentials</label>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-semibold text-slate-400 ml-1">Clearance Key</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Security Key"
+                  placeholder="Password"
                   value={newUser.password}
                   onChange={e => setNewUser({ ...newUser, password: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-6 pr-14 py-4 font-black text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-300 shadow-sm"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-12 py-3 font-semibold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-300 shadow-sm"
                 />
                 <button
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-indigo-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest ml-1">Administrative Clearance</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <label className="text-[10px] font-semibold text-slate-400 ml-1">Clearance Level</label>
+              <div className="grid grid-cols-2 gap-4">
                 {[
-                  { val: 'USER', label: 'OPERATOR', desc: 'STANDARD ACCESS', icon: UserCheck, color: 'emerald' },
-                  { val: 'ADMIN', label: 'ADMINISTRATOR', desc: 'FULL AUTHORITY', icon: ShieldCheck, color: 'indigo' }
+                  { val: 'USER', label: 'Operator', icon: UserCheck, color: 'emerald' },
+                  { val: 'ADMIN', label: 'Administrator', icon: ShieldCheck, color: 'indigo' }
                 ].map(r => (
                   <button
                     key={r.val}
                     onClick={() => setNewUser({ ...newUser, role: r.val })}
-                    className={`flex items-center gap-5 p-5 rounded-[2rem] border-2 transition-all group relative overflow-hidden ${newUser.role === r.val
-                        ? `border-${r.color}-500 bg-${r.color}-50/50 shadow-xl shadow-${r.color}-100/50`
-                        : 'border-slate-100 bg-slate-50 hover:border-slate-200'
+                    className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${newUser.role === r.val
+                        ? `border-${r.color}-500 bg-${r.color}-50 shadow-sm`
+                        : 'border-slate-50 bg-slate-50 hover:border-slate-100 text-slate-400'
                       }`}
                   >
-                    <div className={`p-4 rounded-2xl transition-all flex-shrink-0 ${newUser.role === r.val ? `bg-${r.color}-600 text-white shadow-lg shadow-${r.color}-200` : 'bg-white text-slate-400 shadow-sm'}`}>
-                      <r.icon size={22} strokeWidth={2.5} />
-                    </div>
-                    <div className="text-left flex-1 min-w-0">
-                      <div className={`text-sm font-black uppercase tracking-widest leading-tight mb-1 truncate ${newUser.role === r.val ? `text-${r.color}-900` : 'text-slate-700'}`}>{r.label}</div>
-                      <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest opacity-70 truncate">{r.desc}</div>
-                    </div>
-                    {newUser.role === r.val && (
-                      <div className={`absolute top-2 right-6 w-1.5 h-1.5 rounded-full bg-${r.color}-500 animate-pulse`}></div>
-                    )}
+                    <r.icon size={18} strokeWidth={2.5} className={newUser.role === r.val ? `text-${r.color}-600` : ''} />
+                    <span className={`text-[13px] font-semibold ${newUser.role === r.val ? `text-${r.color}-900` : ''}`}>{r.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest ml-1">Branch Assignment</label>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-semibold text-slate-400 ml-1">Branch</label>
                 <select
                   value={newUser.branch}
                   onChange={e => setNewUser({ ...newUser, branch: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 font-black text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all appearance-none cursor-pointer shadow-sm"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all appearance-none cursor-pointer shadow-sm"
                 >
                   {branches.map(b => <option key={b} value={b}>{b}</option>)}
                 </select>
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest ml-1">Operational Segment</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-semibold text-slate-400 ml-1">Department</label>
                 <select
                   value={newUser.department}
                   onChange={e => setNewUser({ ...newUser, department: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 font-black text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all appearance-none cursor-pointer shadow-sm"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all appearance-none cursor-pointer shadow-sm"
                 >
                   {departments.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
             </div>
 
-            <div className="space-y-4 pt-2">
+            <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest ml-1">Authorized Modules</label>
+                <label className="text-[10px] font-semibold text-slate-400 ml-1">Module Authority</label>
                 <button
                   onClick={() => {
                     const allSelected = newUser.pageAccess.length === availablePages.length;
                     setNewUser({ ...newUser, pageAccess: allSelected ? [] : [...availablePages] });
                   }}
-                  className="text-[10px] font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-[0.1em]"
+                  className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-700"
                 >
                   {newUser.pageAccess.length === availablePages.length ? 'Revoke All' : 'Grant All'}
                 </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 {availablePages.map(page => {
                   const isSelected = newUser.pageAccess.includes(page);
                   return (
@@ -659,15 +622,15 @@ export default function Settings() {
                           : [...newUser.pageAccess, page];
                         setNewUser({ ...newUser, pageAccess: updated });
                       }}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-2xl border-2 transition-all text-left ${isSelected
-                          ? 'border-indigo-500 bg-indigo-50 text-indigo-900 shadow-lg shadow-indigo-100'
-                          : 'border-slate-50 bg-slate-50 hover:border-slate-200 text-slate-500'
+                      className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border-2 transition-all text-left ${isSelected
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-900 shadow-sm'
+                          : 'border-slate-50 bg-slate-50 hover:border-slate-100 text-slate-400'
                         }`}
                     >
-                      <div className={`w-4 h-4 rounded-md border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 bg-white'}`}>
-                        {isSelected && <Plus size={12} className="text-white rotate-45" strokeWidth={4} />}
+                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 bg-white'}`}>
+                        {isSelected && <Plus size={10} className="text-white rotate-45" strokeWidth={4} />}
                       </div>
-                      <span className="text-[11px] font-black uppercase tracking-tight truncate">{page}</span>
+                      <span className="text-[11px] font-semibold truncate">{page}</span>
                     </button>
                   );
                 })}
@@ -676,20 +639,17 @@ export default function Settings() {
           </div>
 
           {/* Modal Footer */}
-          <div className="p-8 md:p-10 border-t border-slate-100 bg-white flex flex-col sm:flex-row gap-4">
+          <div className="p-8 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleSaveUser}
               disabled={submitting}
-              className={`flex-1 flex items-center justify-center gap-3 py-5 rounded-2xl font-black text-white shadow-2xl transition-all active:scale-95 disabled:opacity-50 text-sm uppercase tracking-widest ${editingUserId ? 'bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700' : 'bg-emerald-500 shadow-emerald-200 hover:bg-emerald-600'
+              className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-semibold text-white shadow-sm transition-all active:scale-95 disabled:opacity-50 text-sm ${editingUserId ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-emerald-500 hover:bg-emerald-600'
                 }`}
             >
-              {submitting ? <Loader2 size={20} className="animate-spin" /> : editingUserId ? 'Commit Identity' : 'Initialize Identity'}
+              {submitting ? <Loader2 size={18} className="animate-spin" /> : editingUserId ? 'Commit Changes' : 'Register identity'}
             </button>
-            <button
-              onClick={closeModal}
-              className="px-10 py-5 bg-slate-100 text-slate-500 border border-slate-200 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all active:scale-95"
-            >
-              Abort Protocol
+            <button onClick={closeModal} className="px-8 py-3.5 bg-white border border-slate-200 text-slate-500 rounded-2xl font-semibold text-[11px] hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all active:scale-95">
+              Discard
             </button>
           </div>
         </div>
@@ -697,4 +657,4 @@ export default function Settings() {
     )}
   </>
   );
-}
+}
