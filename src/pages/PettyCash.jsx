@@ -433,9 +433,33 @@ export default function PettyCash() {
         </div>
       </div>
 
-      {/* Form */}
-      {showForm && (
-        <form onSubmit={handleSubmit} className="space-y-6 mx-4 md:mx-0">
+      {/* Form Container */}
+      <div className={`${showForm ? 'block' : 'hidden'} ${
+        showForm 
+          ? 'fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md p-4 md:p-0 overflow-y-auto md:static md:bg-transparent md:backdrop-blur-none md:z-auto md:overflow-visible animate-in fade-in duration-300' 
+          : ''
+      }`}>
+        <div className="min-h-full flex flex-col md:block py-10 md:py-0">
+          {/* Mobile Header for Form */}
+          <div className="flex items-center justify-between mb-4 md:hidden px-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-lg">
+                <Plus size={20} />
+              </div>
+              <h2 className="text-xl font-bold text-white">New Transaction</h2>
+            </div>
+            <button 
+              onClick={() => {
+                setShowForm(false);
+                setFormEntries([createDefaultEntry()]);
+              }} 
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white backdrop-blur-sm transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
           {formEntries.map((entry, index) => (
             <div key={index} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-10 space-y-8 relative overflow-hidden">
               <div className="flex items-center justify-between">
@@ -476,8 +500,6 @@ export default function PettyCash() {
                     required
                   >
                     <option value="Cash Received">Cash Received (+)</option>
-                    <option value="Expense">Expense (-)</option>
-                    <option value="Cash Returned">Cash Returned (+)</option>
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -594,7 +616,8 @@ export default function PettyCash() {
             </button>
           </div>
         </form>
-      )}
+      </div>
+    </div>
 
       {/* Main Table */}
       <div className="bg-white rounded-2xl md:border border-slate-100 shadow-sm overflow-hidden min-h-[400px] flex flex-col">
@@ -848,6 +871,16 @@ export default function PettyCash() {
           </>
         )}
       </div>
+      {/* Mobile Floating Action Button */}
+      {!showForm && (
+        <button
+          onClick={() => setShowForm(true)}
+          className="md:hidden fixed bottom-6 right-6 p-5 bg-slate-800 text-white rounded-full shadow-2xl shadow-slate-400 z-40 active:scale-90 transition-all border-4 border-white animate-in zoom-in slide-in-from-bottom-10 duration-500"
+          title="New Transaction"
+        >
+          <Plus size={28} strokeWidth={3} />
+        </button>
+      )}
     </div>
   );
 }
