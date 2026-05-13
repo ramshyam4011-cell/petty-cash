@@ -307,7 +307,6 @@ export default function Ledger() {
                 <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Type</th>
                 <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Amount</th>
                 <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Running Balance</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Ref ID</th>
               </tr>
             </thead>
             <tbody>
@@ -333,9 +332,6 @@ export default function Ledger() {
                     (entry.balance !== undefined ? entry.balance : entry.balanceAfter) >= 0 ? 'text-blue-600' : 'text-orange-600'
                   }`}>
                     {formatCurrency(entry.balance !== undefined ? entry.balance : entry.balanceAfter)}
-                  </td>
-                  <td className="px-4 py-2 text-center text-sm text-gray-500 font-mono er">
-                    {entry.referenceId}
                   </td>
                 </tr>
               ))}

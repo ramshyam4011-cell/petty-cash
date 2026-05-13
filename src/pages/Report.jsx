@@ -100,9 +100,8 @@ export default function Report() {
       toast.error('No data to export');
       return;
     }
-    const headers = ['VOUCHER', 'DATE', 'CATEGORY', 'DESCRIPTION', 'AMOUNT', 'MODE', 'STATUS', 'BY'];
+    const headers = ['DATE', 'CATEGORY', 'DESCRIPTION', 'AMOUNT', 'MODE', 'STATUS', 'BY'];
     const rows = filteredExpenses.map(e => [
-      e.sn,
       e.date,
       `"${e.groupHead} - ${e.subHead || e.expenseHead}"`,
       `"${e.remarks ? String(e.remarks).replace(/"/g, '""') : ''}"`,
@@ -251,7 +250,6 @@ export default function Report() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50/50">
-                <th className="px-5 py-4 text-xs font-semibold text-gray-500  tracking-wider">Voucher</th>
                 <th className="px-5 py-4 text-xs font-semibold text-gray-500  tracking-wider">Date</th>
                 <th className="px-5 py-4 text-xs font-semibold text-gray-500  tracking-wider">Category</th>
                 <th className="px-5 py-4 text-xs font-semibold text-gray-500  tracking-wider">Description</th>
@@ -278,10 +276,6 @@ export default function Report() {
               ) : (
                 filteredExpenses.map((expense) => (
                   <tr key={expense.id} className="hover:bg-gray-50/50 transition-colors group">
-                    {/* VOUCHER */}
-                    <td className="px-5 py-4">
-                      <span className="text-[13px] font-mono text-gray-500">{expense.sn}</span>
-                    </td>
                     
                     {/* DATE */}
                     <td className="px-5 py-4">

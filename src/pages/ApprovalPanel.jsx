@@ -275,7 +275,6 @@ export default function ApprovalPanel() {
                         onChange={toggleSelectAll}
                       />
                     </th>
-                    <th className="px-6 py-3">Voucher</th>
                     <th className="px-6 py-3">Date</th>
                     <th className="px-6 py-3">Category</th>
                     <th className="px-6 py-3">Details</th>
@@ -298,7 +297,6 @@ export default function ApprovalPanel() {
                             onChange={() => toggleSelect(r.SN)}
                           />
                         </td>
-                        <td className="px-6 py-4 font-black text-blue-700 text-xs truncate max-w-[120px]">VCH-#{r.SN?.split('-').pop()}</td>
                         <td className="px-6 py-4 text-slate-500 font-bold text-xs">{formatDate(r.Date)}</td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col">
@@ -357,7 +355,7 @@ export default function ApprovalPanel() {
                           onChange={() => toggleSelect(r.SN)}
                         />
                         <div>
-                          <p className="text-[10px] font-black text-blue-600 uppercase tracking-tighter mb-1">VCH-#{r.SN?.split('-').pop()} • {formatDate(r.Date)}</p>
+                           <p className="text-[10px] font-black text-blue-600 uppercase tracking-tighter mb-1">{formatDate(r.Date)}</p>
                           <p className="font-black text-slate-900 text-sm uppercase">{r['Group Head']}</p>
                           <p className="text-xs font-bold text-slate-500 line-clamp-1">{r['Paid To'] || r['Description / Reason']}</p>
                         </div>

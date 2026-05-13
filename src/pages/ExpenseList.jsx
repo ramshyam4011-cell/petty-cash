@@ -254,7 +254,6 @@ export default function ExpenseList() {
                 <div key={expense.id} className="p-4 flex flex-col gap-4">
                    <div className="flex justify-between items-start">
                       <div className="flex flex-col gap-1.5">
-                         <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-semibold border border-indigo-100   w-fit">{expense.sn}</span>
                          <h3 className="font-semibold text-slate-900 text-lg leading-tight ">{expense.remarks || 'No Description'}</h3>
                          <span className="text-[11px] font-semibold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg w-fit  tracking-wider">{expense.groupHead}</span>
                       </div>
@@ -289,7 +288,6 @@ export default function ExpenseList() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/50">
-                    <th className="px-6 py-5 text-[10px] font-semibold text-slate-400  ">Voucher</th>
                     <th className="px-6 py-5 text-[10px] font-semibold text-slate-400  ">Date</th>
                     <th className="px-6 py-5 text-[10px] font-semibold text-slate-400  ">Category</th>
                     <th className="px-6 py-5 text-[10px] font-semibold text-slate-400  ">Recipient</th>
@@ -301,9 +299,6 @@ export default function ExpenseList() {
                 <tbody className="divide-y divide-slate-50">
                   {filteredExpenses.map((expense) => (
                     <tr key={expense.id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="px-6 py-5">
-                        <span className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-[12px] font-semibold border border-indigo-100 shadow-sm">{expense.sn}</span>
-                      </td>
                       <td className="px-6 py-5">
                         <span className="text-[13px] font-semibold text-slate-600">{expense.date}</span>
                       </td>
@@ -357,7 +352,7 @@ export default function ExpenseList() {
               <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-600"></div>
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-3 mb-2.5">
-                   <span className="px-3 py-1.5 bg-indigo-600 text-white rounded-xl text-[12px] font-semibold shadow-sm shadow-indigo-100  ">{selectedExpense.sn}</span>
+                   <span className="px-3 py-1.5 bg-indigo-600 text-white rounded-xl text-[12px] font-semibold shadow-sm shadow-indigo-100  ">Record Details</span>
                    {getStatusPill(selectedExpense.status)}
                 </div>
                 <div className="flex items-center gap-2 text-slate-400">

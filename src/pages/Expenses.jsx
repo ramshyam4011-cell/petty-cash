@@ -468,7 +468,6 @@ export default function Expenses() {
                       className="w-full border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm"
                     >
                       <option value="Cash">Cash</option>
-                      <option value="Cheque">Cheque</option>
                       <option value="Bank Transfer">Bank Transfer</option>
                       <option value="Online">Online</option>
                     </select>
@@ -628,7 +627,6 @@ export default function Expenses() {
                 <div className="flex items-center gap-1 mb-1 border-b border-slate-200/60 pb-1">
                    <Calendar size={11} className="text-indigo-400" />
                    <span className="text-[10px] font-medium text-slate-700 ">{formatDate(expense.date)}</span>
-                   <span className="text-[9px] text-slate-400 font-medium ml-auto tracking-wider">REF: {expense.sn}</span>
                 </div>
                 <div>
                   <p className="text-[9px] text-indigo-500 font-medium mb-0  tracking-wider">Remarks</p>
@@ -676,7 +674,6 @@ export default function Expenses() {
           <table className="w-full min-w-[800px] relative">
             <thead className="bg-indigo-600 from-sky-600 to-indigo-600 sticky top-0 z-10 shadow-md">
               <tr>
-                <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">SN</th>
                 <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">Person</th>
                 <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">Date</th>
                 <th className="px-4 py-3.5 text-center text-xs font-semibold text-white  tracking-wider border-b border-indigo-700/50">Amount</th>
@@ -695,7 +692,6 @@ export default function Expenses() {
             <tbody>
               {paginatedExpenses.map((expense) => (
                 <tr key={expense.id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-center text-sm font-medium text-gray-900">{expense.sn}</td>
                   <td className="px-4 py-3 text-center text-sm text-gray-700">{expense.personName}</td>
                   <td className="px-4 py-3 text-center text-sm text-gray-700">{formatDate(expense.date)}</td>
                   <td className="px-4 py-3 text-center text-sm font-semibold text-red-600">
