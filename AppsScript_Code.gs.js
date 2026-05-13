@@ -482,15 +482,6 @@ function handleMasterRequests(payload) {
     sheet.appendRow(['Group Head', 'Expense Head', 'Sub Head', 'Vendore', 'Branch']);
     sheet.getRange('A1:E1').setFontWeight('bold');
     sheet.setFrozenRows(1);
-  } else {
-    // Ensure Vendore & Branch headers exist
-    var headers = sheet.getRange(1, 1, 1, 5).getValues()[0];
-    if (headers[3] !== 'Vendore') {
-      sheet.getRange(1, 4).setValue('Vendore').setFontWeight('bold');
-    }
-    if (headers[4] !== 'Branch') {
-      sheet.getRange(1, 5).setValue('Branch').setFontWeight('bold');
-    }
   }
 
   var action = payload.action;
@@ -515,149 +506,183 @@ function handleMasterRequests(payload) {
     // ---- CREATE ----
     if (action === 'createMaster') {
       var data = payload.data;
-      var groupHead = data['Group Head'] || '';
-      var expenseHead = data['Expense Head'] || '';
-      var subHead = data['Sub Head'] || '';
       var vendor = data['Vendore'] || '';
       var branch = data['Branch'] || '';
 
-      var values = sheet.getDataRange().getValues();
-      var isDuplicate = values.slice(1).some(function(row) {
-        return row[0] === groupHead && row[1] === expenseHead && row[2] === subHead && row[3] === vendor && row[4] === branch;
-      });
+      if (vendor) {
+        return createInColumn(sheet, 4, vendor);
+      } else if (branch) {
+        return createInColumn(sheet, 5, branch);
+      } else {
+        // Hierarchy (Group/Exp/Sub) - Find first row where A-C are empty starting from row 2
+        var groupHead = (data['Group Head'] || '').trim();
+        var expenseHead = (data['Expense Head'] || '').trim();
+        var subHead = (data['Sub Head'] || '').trim();
+        
+        var values = sheet.getDataRange().getValues();
+        // Duplicate check
+        for (var i = 1; i < values.length; i++) {
+          if (String(values[i][0]).trim() === groupHead && 
+              String(values[i][1]).trim() === expenseHead && 
+              String(values[i][2]).trim() === subHead) {
+            return { success: true, message: 'Already exists' };
+          }
+        }
 
-      if (!isDuplicate) {
-        sheet.appendRow([groupHead, expenseHead, subHead, vendor, branch]);
+        // Find first empty row in A-C
+        var targetRow = values.length + 1;
+        for (var i = 1; i < values.length; i++) {
+          if (String(values[i][0]).trim() === '' && 
+              String(values[i][1]).trim() === '' && 
+              String(values[i][2]).trim() === '') {
+            targetRow = i + 1;
+            break;
+          }
+        }
+        sheet.getRange(targetRow, 1, 1, 3).setValues([[groupHead, expenseHead, subHead]]);
+        return { success: true, message: 'Hierarchy added' };
       }
-      return { success: true, message: 'Added successfully' };
     }
 
     // ---- UPDATE ----
     if (action === 'updateMaster') {
       var d = payload.data;
       var level = d.level;
-      var oldValue = d.oldValue;
-      var newValue = d.newValue;
-      if (!level || !oldValue || !newValue) {
-        return { success: false, error: 'Missing data for update.' };
-      }
+      var oldValue = d.oldValue || {};
+      var newValue = d.newValue || {};
 
       var values = sheet.getDataRange().getValues();
       var updatedCount = 0;
 
       for (var i = 1; i < values.length; i++) {
         var row = values[i];
-        var shouldUpdate = false;
+        var match = false;
 
-        if (level === 'group' && row[0] === (oldValue['Group Head'] || '')) {
-          row[0] = newValue['Group Head'] || row[0];
-          shouldUpdate = true;
-        } else if (level === 'expense' &&
-          row[0] === (oldValue['Group Head'] || '') &&
-          row[1] === (oldValue['Expense Head'] || '')) {
-          row[1] = newValue['Expense Head'] || row[1];
-          shouldUpdate = true;
-        } else if (level === 'sub' &&
-          row[0] === (oldValue['Group Head'] || '') &&
-          row[1] === (oldValue['Expense Head'] || '') &&
-          row[2] === (oldValue['Sub Head'] || '')) {
-          row[2] = newValue['Sub Head'] || row[2];
-          shouldUpdate = true;
-        } else if (level === 'vendor' &&
-          row[0] === (oldValue['Group Head'] || '') &&
-          row[1] === (oldValue['Expense Head'] || '') &&
-          row[3] === (oldValue['Vendore'] || '')) {
-          row[3] = newValue['Vendore'] || row[3];
-          shouldUpdate = true;
-        } else if (level === 'branch' &&
-          row[4] === (oldValue['Branch'] || '')) {
-          row[4] = newValue['Branch'] || row[4];
-          shouldUpdate = true;
-        }
-
-        if (shouldUpdate) {
-          sheet.getRange(i + 1, 1, 1, 5).setValues([row]);
-          updatedCount++;
+        if (level === 'vendor') {
+          if (String(row[3]).trim() === String(oldValue['Vendore'] || '').trim()) {
+            sheet.getRange(i + 1, 4).setValue(newValue['Vendore'] || '');
+            updatedCount++;
+          }
+        } else if (level === 'branch') {
+          if (String(row[4]).trim() === String(oldValue['Branch'] || '').trim()) {
+            sheet.getRange(i + 1, 5).setValue(newValue['Branch'] || '');
+            updatedCount++;
+          }
+        } else {
+          // Hierarchy logic
+          if (level === 'group' && String(row[0]).trim() === String(oldValue['Group Head'] || '').trim()) {
+            sheet.getRange(i + 1, 1).setValue(newValue['Group Head'] || row[0]);
+            updatedCount++;
+          } else if (level === 'expense' && 
+                     String(row[0]).trim() === String(oldValue['Group Head'] || '').trim() && 
+                     String(row[1]).trim() === String(oldValue['Expense Head'] || '').trim()) {
+            sheet.getRange(i + 1, 2).setValue(newValue['Expense Head'] || row[1]);
+            updatedCount++;
+          } else if (level === 'sub' && 
+                     String(row[0]).trim() === String(oldValue['Group Head'] || '').trim() && 
+                     String(row[1]).trim() === String(oldValue['Expense Head'] || '').trim() && 
+                     String(row[2]).trim() === String(oldValue['Sub Head'] || '').trim()) {
+            sheet.getRange(i + 1, 3).setValue(newValue['Sub Head'] || row[2]);
+            updatedCount++;
+          }
         }
       }
-      return { success: true, message: 'Updated ' + updatedCount + ' rows' };
+      return { success: true, message: 'Updated ' + updatedCount + ' items' };
     }
 
     // ---- DELETE ----
     if (action === 'deleteMaster') {
       var data = payload.data;
-      var targetGroup   = data['Group Head'];
-      var targetExpense = data['Expense Head'];
-      var targetSub     = data['Sub Head'];
-      var targetVendor  = data['Vendore'];
-      var targetBranch  = data['Branch'];
+      var targetVendor = data['Vendore'];
+      var targetBranch = data['Branch'];
 
-      // Determine what type of delete this is
-      var isVendorOnly  = targetVendor !== undefined && !targetGroup && !targetExpense && !targetSub;
-      var isBranchOnly  = targetBranch !== undefined && !targetGroup && !targetExpense && !targetSub && targetVendor === undefined;
-      var isVendorWithGroup = targetVendor !== undefined && targetGroup;
+      if (targetVendor !== undefined) {
+        return deleteFromColumn(sheet, 4, targetVendor);
+      } else if (targetBranch !== undefined) {
+        return deleteFromColumn(sheet, 5, targetBranch);
+      } else {
+        // Hierarchy Delete
+        var tGroup   = String(data['Group Head'] || '').trim();
+        var tExpense = String(data['Expense Head'] || '').trim();
+        var tSub     = String(data['Sub Head'] || '').trim();
+        
+        var values = sheet.getDataRange().getValues();
+        var deletedCount = 0;
 
-      var values = sheet.getDataRange().getValues();
-      var headers = values[0].map(function(h) { return String(h).trim(); });
-      var groupIdx   = headers.indexOf('Group Head');
-      var expIdx     = headers.indexOf('Expense Head');
-      var subIdx     = headers.indexOf('Sub Head');
-      var vendorIdx  = headers.indexOf('Vendore');
-      var branchIdx  = headers.indexOf('Branch');
+        for (var i = values.length - 1; i >= 1; i--) {
+          var row = values[i];
+          var sGroup   = String(row[0]).trim();
+          var sExpense = String(row[1]).trim();
+          var sSub     = String(row[2]).trim();
+          var shouldDelete = false;
 
-      var deletedCount = 0;
-
-      for (var i = values.length - 1; i >= 1; i--) {
-        var row = values[i];
-        var shouldDelete = false;
-
-        if (isVendorOnly) {
-          // Delete row only if Vendore column matches exactly and group/expense/sub are all empty
-          if (String(row[vendorIdx]).trim() === String(targetVendor).trim() &&
-              String(row[groupIdx]).trim() === '' &&
-              String(row[expIdx]).trim() === '') {
-            shouldDelete = true;
+          if (tGroup && tExpense && tSub) {
+            if (sGroup === tGroup && sExpense === tExpense && sSub === tSub) shouldDelete = true;
+          } else if (tGroup && tExpense) {
+            if (sGroup === tGroup && sExpense === tExpense) shouldDelete = true;
+          } else if (tGroup) {
+            if (sGroup === tGroup) shouldDelete = true;
           }
-        } else if (isBranchOnly) {
-          // Delete row only if Branch column matches exactly and group/expense/sub are all empty
-          if (String(row[branchIdx]).trim() === String(targetBranch).trim() &&
-              String(row[groupIdx]).trim() === '' &&
-              String(row[expIdx]).trim() === '') {
-            shouldDelete = true;
+
+          if (shouldDelete) {
+            // Only delete row if D and E are empty, otherwise just clear A-C to preserve independent lists
+            if (String(row[3] || '').trim() === '' && String(row[4] || '').trim() === '') {
+              sheet.deleteRow(i + 1);
+            } else {
+              sheet.getRange(i + 1, 1, 1, 3).clearContent();
+            }
+            deletedCount++;
           }
-        } else if (isVendorWithGroup) {
-          if (String(row[groupIdx]).trim() === String(targetGroup).trim() &&
-              String(row[expIdx]).trim() === String(targetExpense || '').trim() &&
-              String(row[vendorIdx]).trim() === String(targetVendor).trim()) {
-            shouldDelete = true;
-          }
-        } else if (targetGroup && !targetExpense && !targetSub) {
-          // Delete entire group and all its children
-          if (String(row[groupIdx]).trim() === String(targetGroup).trim()) shouldDelete = true;
-        } else if (targetGroup && targetExpense && !targetSub) {
-          if (String(row[groupIdx]).trim() === String(targetGroup).trim() &&
-              String(row[expIdx]).trim() === String(targetExpense).trim()) shouldDelete = true;
-        } else if (targetGroup && targetExpense && targetSub) {
-          if (String(row[groupIdx]).trim() === String(targetGroup).trim() &&
-              String(row[expIdx]).trim() === String(targetExpense).trim() &&
-              String(row[subIdx]).trim() === String(targetSub).trim()) shouldDelete = true;
         }
-
-        if (shouldDelete) {
-          sheet.deleteRow(i + 1);
-          deletedCount++;
-        }
+        return { success: true, deleted: true, count: deletedCount };
       }
-      return { success: true, message: 'Deleted ' + deletedCount + ' rows successfully' };
     }
 
     return { success: false, error: 'Unknown action for Master' };
 
-  } catch (error) {
-    return { success: false, error: error.toString() };
+  } catch (e) {
+    return { success: false, error: e.toString() };
   }
 }
 
+// Helper: Append value to the first empty cell in a specific column
+function createInColumn(sheet, colIndex, value) {
+  var values = sheet.getRange(1, colIndex, sheet.getLastRow() + 10, 1).getValues();
+  var valToMatch = String(value).trim();
+  
+  // Duplicate check in specific column
+  for (var j = 1; j < values.length; j++) {
+    if (String(values[j][0]).trim() === valToMatch) return { success: true, message: 'Already exists' };
+  }
+
+  // Find first empty cell
+  var targetRow = values.length + 1;
+  for (var i = 1; i < values.length; i++) {
+    if (String(values[i][0]).trim() === '') {
+      targetRow = i + 1;
+      break;
+    }
+  }
+  sheet.getRange(targetRow, colIndex).setValue(value);
+  return { success: true, message: 'Added' };
+}
+
+// Helper: Delete specific value from column and shift UP
+function deleteFromColumn(sheet, colIndex, value) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return { success: true, deleted: false };
+  var values = sheet.getRange(1, colIndex, lastRow, 1).getValues();
+  var valToMatch = String(value).trim();
+  var found = false;
+
+  for (var i = values.length - 1; i >= 1; i--) {
+    if (String(values[i][0]).trim() === valToMatch) {
+      sheet.getRange(i + 1, colIndex).deleteCells(SpreadsheetApp.Dimension.ROWS);
+      found = true;
+    }
+  }
+  return { success: true, deleted: found };
+}
 
 // ==================== SETTING SHEET CRUD ====================
 

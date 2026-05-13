@@ -676,4 +676,4 @@ export default function AddExpense() {
 }
 
 const receiveModes = ['Cash Received', 'Cash to Receive', 'Transfer', 'Online Received (+)', 'UPI Received (+)'];
-const expenseModes = ['Cash', 'Transfer', 'Cheque', 'Online', 'UPI'];
+const expenseModes = ['Cash', 'Cash to Receive', 'Transfer', 'Cheque', 'Online', 'UPI'];

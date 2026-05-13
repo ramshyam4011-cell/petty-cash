@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Calendar, Wallet, Clock, TrendingUp, TrendingDown,
-  ArrowUpDown, RefreshCcw, Download, Filter, ChevronRight, BarChart3, PieChart as PieIcon, LineChart as LineIcon, Search, FilterX, Home
+  ArrowUpDown, RefreshCcw, Download, Filter, ChevronRight, BarChart3, PieChart as PieIcon, LineChart as LineIcon, Search, FilterX, Home, HandCoins
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
@@ -88,14 +88,9 @@ export default function AdminDashboard() {
     const activeApproved = filteredRecords.filter(r => r['Delete Status'] === 'ACTIVE' && r.Status === 'APPROVED');
     const totalIn = activeApproved.filter(r => r.Flow === 'IN').reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
     const totalOut = activeApproved.filter(r => r.Flow === 'OUT').reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
-    
-    // New stats
     const totalPending = filteredRecords.filter(r => r.Status === 'PENDING' && r['Delete Status'] === 'ACTIVE').reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
     const totalPendingDelete = filteredRecords.filter(r => r['Delete Status'] === 'PENDING_DELETE').reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
 
-    // Cash at Home balance:
-    // +: Approved OUT expenses with Expense Head = 'Cash at Home' (money dispatched home)
-    // -: Approved IN receives with Expense Head = 'Cash at Home' (money returned from home via Transfer)
     const cashAtHomeSent = activeApproved
       .filter(r => r.Flow === 'OUT' && r['Expense Head'] === 'Cash at Home' && (!homeSubFilter || r['Sub Head'] === homeSubFilter))
       .reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
@@ -104,7 +99,20 @@ export default function AdminDashboard() {
       .reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
     const cashAtHome = cashAtHomeSent - cashAtHomeReturned;
 
-    return { totalIn, totalOut, balance: totalIn - totalOut, totalPending, totalPendingDelete, cashAtHome, cashAtHomeSent, cashAtHomeReturned };
+    const cashApprovalCount = filteredRecords.filter(r => r.Flow === 'IN' && r.Status === 'PENDING' && r['Payment mode'] === 'Cash to Receive' && r['Delete Status'] === 'ACTIVE').length;
+    const cashApprovalAmount = filteredRecords.filter(r => r.Flow === 'IN' && r.Status === 'PENDING' && r['Payment mode'] === 'Cash to Receive' && r['Delete Status'] === 'ACTIVE').reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
+
+    // Cash to Receive Net (OUT - IN)
+    const ctrOut = activeApproved.filter(r => r.Flow === 'OUT' && r['Payment mode'] === 'Cash to Receive').reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
+    const ctrIn = activeApproved.filter(r => r.Flow === 'IN' && r['Payment mode'] === 'Cash to Receive').reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
+    const ctrNet = ctrOut - ctrIn;
+
+    return { 
+      totalIn, totalOut, balance: totalIn - totalOut, totalPending, totalPendingDelete, 
+      cashAtHome, cashAtHomeSent, cashAtHomeReturned,
+      cashApprovalCount, cashApprovalAmount,
+      ctrOut, ctrIn, ctrNet
+    };
   }, [filteredRecords, homeSubFilter]);
 
   const cashAtHomeRecords = useMemo(() => {
@@ -117,6 +125,17 @@ export default function AdminDashboard() {
       })
       .slice(0, 10);
   }, [filteredRecords, homeSubFilter]);
+
+  const cashToReceiveRecords = useMemo(() => {
+    return filteredRecords
+      .filter(r => r['Payment mode'] === 'Cash to Receive' && r['Delete Status'] === 'ACTIVE' && r.Status === 'APPROVED')
+      .sort((a, b) => {
+        const dateCmp = (b.Date || '').localeCompare(a.Date || '');
+        if (dateCmp !== 0) return dateCmp;
+        return (b.SN || '').localeCompare(a.SN || '');
+      })
+      .slice(0, 10);
+  }, [filteredRecords]);
 
   // Chart Data Preparation
   const trendData = useMemo(() => {
@@ -251,31 +270,98 @@ export default function AdminDashboard() {
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group min-h-[120px] flex flex-col justify-center">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><TrendingUp size={48}/></div>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Income</p>
           <p className="text-lg font-bold text-emerald-600">+{formatCurrency(stats.totalIn)}</p>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group min-h-[120px] flex flex-col justify-center">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><TrendingDown size={48}/></div>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Expense</p>
           <p className="text-lg font-bold text-rose-600">-{formatCurrency(stats.totalOut)}</p>
         </div>
-        <div className="bg-slate-900 p-4 rounded-xl shadow-lg relative overflow-hidden group border border-slate-800 sm:col-span-2 lg:col-span-1">
+        <div className="bg-slate-900 p-6 rounded-xl shadow-lg relative overflow-hidden group border border-slate-800 min-h-[120px] flex flex-col justify-center">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity text-white"><Wallet size={48}/></div>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Net Balance</p>
           <p className="text-lg font-bold text-white">{formatCurrency(stats.balance)}</p>
         </div>
-        <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 shadow-sm relative overflow-hidden group">
+        <div className="bg-amber-50 p-6 rounded-xl border border-amber-100 shadow-sm relative overflow-hidden group min-h-[120px] flex flex-col justify-center">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-amber-500"><Clock size={48}/></div>
-          <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest mb-1">Unapproved</p>
+          <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest mb-1">Unapproved Expense</p>
           <p className="text-lg font-bold text-amber-700">{formatCurrency(stats.totalPending)}</p>
         </div>
-        <div className="bg-rose-50 p-4 rounded-xl border border-rose-100 shadow-sm relative overflow-hidden group">
+        <div className="bg-rose-50 p-6 rounded-xl border border-rose-100 shadow-sm relative overflow-hidden group min-h-[120px] flex flex-col justify-center">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-rose-500"><ArrowUpDown size={48}/></div>
           <p className="text-[9px] font-bold text-rose-600 uppercase tracking-widest mb-1">Pending Del.</p>
-          <p className="text-lg font-bold text-rose-700">{formatCurrency(stats.totalPendingDelete)}</p>
+          <p className="text-lg font-bold text-rose-700">{stats.totalPendingDelete}</p>
+        </div>
+        <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-100 shadow-sm relative overflow-hidden group min-h-[120px] flex flex-col justify-center">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-emerald-500"><TrendingUp size={48}/></div>
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Cash to Approval</p>
+              <p className="text-lg font-bold text-emerald-700">{formatCurrency(stats.cashApprovalAmount)}</p>
+            </div>
+            <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow-sm">
+              {stats.cashApprovalCount} PENDING
+            </span>
+          </div>
+        </div>
+        <div className="bg-indigo-50 rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden group lg:col-span-3">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-indigo-500"><HandCoins size={48}/></div>
+          <div className="grid grid-cols-1 sm:grid-cols-5 relative z-10">
+            {/* Left: Summary */}
+            <div className="sm:col-span-2 p-6 border-b sm:border-b-0 sm:border-r border-indigo-100 flex flex-col justify-center">
+              <p className="text-[9px] font-bold text-indigo-600 uppercase tracking-widest mb-1">Cash to Receive (Net)</p>
+              <p className="text-2xl font-black text-indigo-700 mb-3">{formatCurrency(stats.ctrNet)}</p>
+              
+              <div className="flex gap-6 border-t border-indigo-100 pt-3 w-full justify-start">
+                <div className="text-left">
+                  <p className="text-[8px] font-black text-slate-400 uppercase">Total Out</p>
+                  <p className="text-xs font-bold text-slate-600">{formatCurrency(stats.ctrOut)}</p>
+                </div>
+                <div className="text-left border-l border-indigo-100 pl-6">
+                  <p className="text-[8px] font-black text-slate-400 uppercase">Total In</p>
+                  <p className="text-xs font-bold text-slate-600">{formatCurrency(stats.ctrIn)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Recent Entries */}
+            <div className="sm:col-span-3 p-3 bg-white/30">
+              <p className="text-[9px] font-black uppercase tracking-widest text-indigo-400 px-2 mb-2">Recent "Cash to Receive" Entries</p>
+              {cashToReceiveRecords.length === 0 ? (
+                <div className="flex items-center justify-center h-24 text-indigo-300">
+                  <p className="text-[10px] font-bold uppercase">No entries found</p>
+                </div>
+              ) : (
+                <div className="space-y-0.5 h-[135px] overflow-y-auto pr-1 custom-scrollbar">
+                  {cashToReceiveRecords.map((r, i) => {
+                    const isIN = r.Flow === 'IN';
+                    return (
+                      <div key={i} className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-white/50 transition-colors group">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isIN ? 'bg-emerald-50' : 'bg-rose-50'}`}>
+                            {isIN
+                              ? <TrendingUp size={10} className="text-emerald-500" />
+                              : <TrendingDown size={10} className="text-rose-500" />}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-800 truncate">{r['Sub Head'] || r['Description / Reason'] || r['Paid To'] || '—'}</p>
+                            <p className="text-[9px] font-bold text-slate-400">{formatDate(r.Date)} · {r['user']}</p>
+                          </div>
+                        </div>
+                        <span className={`text-xs font-black shrink-0 ml-3 ${isIN ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {isIN ? '+' : '-'}{formatCurrency(r['Amount (INR)'])}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -298,7 +384,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-5">
 
           {/* Left: Balance Summary */}
-          <div className="sm:col-span-2 p-5 border-b sm:border-b-0 sm:border-r border-slate-100 flex flex-col justify-between gap-4">
+          <div className="sm:col-span-2 p-6 border-b sm:border-b-0 sm:border-r border-slate-100 flex flex-col justify-between gap-4">
             <div>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Current Balance</p>
               <p className={`text-3xl font-black tracking-tight ${stats.cashAtHome > 0 ? 'text-slate-900' : 'text-emerald-600'}`}>
@@ -334,7 +420,7 @@ export default function AdminDashboard() {
                 <p className="text-[10px] font-bold uppercase">No entries found</p>
               </div>
             ) : (
-              <div className="space-y-0.5 max-h-[220px] overflow-y-auto pr-1 custom-scrollbar">
+              <div className="space-y-0.5 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
                 {cashAtHomeRecords.map((r, i) => {
                   const isIN = r.Flow === 'IN';
                   return (
