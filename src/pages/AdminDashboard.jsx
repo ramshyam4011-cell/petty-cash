@@ -21,6 +21,7 @@ export default function AdminDashboard() {
   const [records, setRecords] = useState([]);
   const [fetching, setFetching] = useState(true);
   const [filters, setFilters] = useState({ from: '', to: '', group: '', expense: '', sub: '' });
+  const [homeSubFilter, setHomeSubFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const fetchDashboardData = async () => {
     try {
@@ -65,6 +66,15 @@ export default function AdminDashboard() {
   const expenseHeads = useMemo(() => [...new Set(records.map(r => r['Expense Head']).filter(Boolean))].sort(), [records]);
   const subHeads = useMemo(() => [...new Set(records.map(r => r['Sub Head']).filter(Boolean))].sort(), [records]);
 
+  const homeSubHeads = useMemo(() => {
+    return [...new Set(
+      records
+        .filter(r => r['Expense Head'] === 'Cash at Home')
+        .map(r => r['Sub Head'])
+        .filter(Boolean)
+    )].sort();
+  }, [records]);
+
   const setPeriod = (months) => {
     const to = new Date().toISOString().split('T')[0];
     const fromDate = new Date();
@@ -87,26 +97,26 @@ export default function AdminDashboard() {
     // +: Approved OUT expenses with Expense Head = 'Cash at Home' (money dispatched home)
     // -: Approved IN receives with Expense Head = 'Cash at Home' (money returned from home via Transfer)
     const cashAtHomeSent = activeApproved
-      .filter(r => r.Flow === 'OUT' && r['Expense Head'] === 'Cash at Home')
+      .filter(r => r.Flow === 'OUT' && r['Expense Head'] === 'Cash at Home' && (!homeSubFilter || r['Sub Head'] === homeSubFilter))
       .reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
     const cashAtHomeReturned = activeApproved
-      .filter(r => r.Flow === 'IN' && r['Expense Head'] === 'Cash at Home')
+      .filter(r => r.Flow === 'IN' && r['Expense Head'] === 'Cash at Home' && (!homeSubFilter || r['Sub Head'] === homeSubFilter))
       .reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
     const cashAtHome = cashAtHomeSent - cashAtHomeReturned;
 
     return { totalIn, totalOut, balance: totalIn - totalOut, totalPending, totalPendingDelete, cashAtHome, cashAtHomeSent, cashAtHomeReturned };
-  }, [filteredRecords]);
+  }, [filteredRecords, homeSubFilter]);
 
   const cashAtHomeRecords = useMemo(() => {
     return filteredRecords
-      .filter(r => r['Expense Head'] === 'Cash at Home' && r['Delete Status'] === 'ACTIVE' && r.Status === 'APPROVED')
+      .filter(r => r['Expense Head'] === 'Cash at Home' && r['Delete Status'] === 'ACTIVE' && r.Status === 'APPROVED' && (!homeSubFilter || r['Sub Head'] === homeSubFilter))
       .sort((a, b) => {
         const dateCmp = (b.Date || '').localeCompare(a.Date || '');
         if (dateCmp !== 0) return dateCmp;
         return (b.SN || '').localeCompare(a.SN || '');  // same date → latest SN (time) first
       })
       .slice(0, 10);
-  }, [filteredRecords]);
+  }, [filteredRecords, homeSubFilter]);
 
   // Chart Data Preparation
   const trendData = useMemo(() => {
@@ -271,9 +281,19 @@ export default function AdminDashboard() {
 
       {/* Cash at Home Section */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
-          <Home size={14} className="text-slate-500" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Cash at Home</span>
+        <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Home size={14} className="text-slate-500" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Cash at Home</span>
+          </div>
+          <select 
+            value={homeSubFilter} 
+            onChange={e => setHomeSubFilter(e.target.value)}
+            className="text-[9px] font-bold text-slate-500 bg-white border border-slate-200 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500/10 min-w-[120px]"
+          >
+            <option value="">All Sub Heads</option>
+            {homeSubHeads.map(h => <option key={h} value={h}>{h}</option>)}
+          </select>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-5">
 
