@@ -94,6 +94,12 @@ function doPost(e) {
       case 'batchcreate':
         result = handleBatchCreate(getSheet(), request.data);
         break;
+      case 'batchupdate':
+        result = handleBatchUpdate(getSheet(), request);
+        break;
+      case 'archive':
+        result = handleArchive(getSheet(), request.date);
+        break;
 
       // ---- File Upload ----
       case 'uploadfile':
@@ -580,28 +586,63 @@ function handleMasterRequests(payload) {
     // ---- DELETE ----
     if (action === 'deleteMaster') {
       var data = payload.data;
-      var targetGroup = data['Group Head'];
+      var targetGroup   = data['Group Head'];
       var targetExpense = data['Expense Head'];
-      var targetSub = data['Sub Head'];
+      var targetSub     = data['Sub Head'];
+      var targetVendor  = data['Vendore'];
+      var targetBranch  = data['Branch'];
+
+      // Determine what type of delete this is
+      var isVendorOnly  = targetVendor !== undefined && !targetGroup && !targetExpense && !targetSub;
+      var isBranchOnly  = targetBranch !== undefined && !targetGroup && !targetExpense && !targetSub && targetVendor === undefined;
+      var isVendorWithGroup = targetVendor !== undefined && targetGroup;
 
       var values = sheet.getDataRange().getValues();
+      var headers = values[0].map(function(h) { return String(h).trim(); });
+      var groupIdx   = headers.indexOf('Group Head');
+      var expIdx     = headers.indexOf('Expense Head');
+      var subIdx     = headers.indexOf('Sub Head');
+      var vendorIdx  = headers.indexOf('Vendore');
+      var branchIdx  = headers.indexOf('Branch');
+
       var deletedCount = 0;
 
       for (var i = values.length - 1; i >= 1; i--) {
         var row = values[i];
         var shouldDelete = false;
 
-        if (targetGroup && targetExpense === undefined && targetSub === undefined) {
-          if (row[0] === targetGroup) shouldDelete = true;
-        } else if (targetGroup && targetExpense !== undefined && targetSub === undefined) {
-          if (row[0] === targetGroup && row[1] === targetExpense) shouldDelete = true;
-        } else if (targetGroup && targetExpense !== undefined && targetSub !== undefined && data['Vendor'] === undefined) {
-          if (row[0] === targetGroup && row[1] === targetExpense && row[2] === targetSub) shouldDelete = true;
-        } else if (targetGroup && targetExpense !== undefined && data['Vendore'] !== undefined) {
-          if (row[0] === targetGroup && row[1] === targetExpense && row[3] === data['Vendore']) shouldDelete = true;
-        } else if (data['Branch'] !== undefined) {
-          if (row[4] === data['Branch']) shouldDelete = true;
+        if (isVendorOnly) {
+          // Delete row only if Vendore column matches exactly and group/expense/sub are all empty
+          if (String(row[vendorIdx]).trim() === String(targetVendor).trim() &&
+              String(row[groupIdx]).trim() === '' &&
+              String(row[expIdx]).trim() === '') {
+            shouldDelete = true;
+          }
+        } else if (isBranchOnly) {
+          // Delete row only if Branch column matches exactly and group/expense/sub are all empty
+          if (String(row[branchIdx]).trim() === String(targetBranch).trim() &&
+              String(row[groupIdx]).trim() === '' &&
+              String(row[expIdx]).trim() === '') {
+            shouldDelete = true;
+          }
+        } else if (isVendorWithGroup) {
+          if (String(row[groupIdx]).trim() === String(targetGroup).trim() &&
+              String(row[expIdx]).trim() === String(targetExpense || '').trim() &&
+              String(row[vendorIdx]).trim() === String(targetVendor).trim()) {
+            shouldDelete = true;
+          }
+        } else if (targetGroup && !targetExpense && !targetSub) {
+          // Delete entire group and all its children
+          if (String(row[groupIdx]).trim() === String(targetGroup).trim()) shouldDelete = true;
+        } else if (targetGroup && targetExpense && !targetSub) {
+          if (String(row[groupIdx]).trim() === String(targetGroup).trim() &&
+              String(row[expIdx]).trim() === String(targetExpense).trim()) shouldDelete = true;
+        } else if (targetGroup && targetExpense && targetSub) {
+          if (String(row[groupIdx]).trim() === String(targetGroup).trim() &&
+              String(row[expIdx]).trim() === String(targetExpense).trim() &&
+              String(row[subIdx]).trim() === String(targetSub).trim()) shouldDelete = true;
         }
+
         if (shouldDelete) {
           sheet.deleteRow(i + 1);
           deletedCount++;
@@ -622,7 +663,7 @@ function handleMasterRequests(payload) {
 
 /**
  * Manages User Settings CRUD for the 'setting' sheet.
- * Columns: A:user, B:user name, C:password, D:role, E:branch, F:department, G:Page access, H:Reported by
+ * Columns: A:user, B:user name, C:password, D:role, E:branch, F:department, G:Page access, H:Reported by, I:Group Heads
  */
 function handleSettingRequests(payload) {
   var sheetName = 'setting';
@@ -630,9 +671,16 @@ function handleSettingRequests(payload) {
   var sheet = ss.getSheetByName(sheetName);
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
-    sheet.appendRow(['user', 'user name', 'password', 'role', 'branch', 'department', 'Page access', 'Reported by']);
-    sheet.getRange('A1:H1').setFontWeight('bold').setBackground('#f1f5f9');
+    sheet.appendRow(['user', 'user name', 'password', 'role', 'branch', 'department', 'Page access', 'Reported by', 'Group Heads']);
+    sheet.getRange('A1:I1').setFontWeight('bold').setBackground('#f1f5f9');
     sheet.setFrozenRows(1);
+  } else {
+    // Migrate: ensure 'Group Heads' column exists
+    var lastCol = sheet.getLastColumn();
+    var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(String);
+    if (headers.indexOf('Group Heads') === -1) {
+      sheet.getRange(1, lastCol + 1).setValue('Group Heads').setFontWeight('bold').setBackground('#f1f5f9');
+    }
   }
 
   var action = payload.action;
@@ -662,6 +710,7 @@ function handleSettingRequests(payload) {
       var dept = (d['department'] || 'Accounts').trim();
       var pageAccess = (d['Page access'] || '').trim();
       var reportedBy = (d['Reported by'] || '').trim();
+      var groupHeads = (d['Group Heads'] || '').trim();
 
       if (!userFull || !userName || !password) {
         return { success: false, error: 'All fields are required' };
@@ -675,7 +724,7 @@ function handleSettingRequests(payload) {
         return { success: false, error: 'Username already exists' };
       }
 
-      sheet.appendRow([userFull, userName, password, role, branch, dept, pageAccess, reportedBy]);
+      sheet.appendRow([userFull, userName, password, role, branch, dept, pageAccess, reportedBy, groupHeads]);
       return { success: true, message: 'User created successfully' };
     }
 
@@ -687,20 +736,27 @@ function handleSettingRequests(payload) {
       var oldUserName = (oldValue['user name'] || '').trim();
       if (!oldUserName) return { success: false, error: 'Missing old username' };
 
-      var values = sheet.getDataRange().getValues();
+      var allData = sheet.getDataRange().getValues();
+      var hdrs = allData[0].map(String);
+      var colMap = {};
+      hdrs.forEach(function(h, i) { colMap[h] = i; });
+      var numCols = hdrs.length;
       var updated = false;
-      for (var i = 1; i < values.length; i++) {
-        if (String(values[i][1]).trim() === oldUserName) {
-          sheet.getRange(i + 1, 1, 1, 8).setValues([[
-            newValue['user'] || values[i][0],
-            newValue['user name'] || values[i][1],
-            newValue['password'] || values[i][2],
-            newValue['role'] || values[i][3],
-            newValue['branch'] || values[i][4],
-            newValue['department'] || values[i][5],
-            newValue['Page access'] !== undefined ? newValue['Page access'] : values[i][6],
-            newValue['Reported by'] !== undefined ? newValue['Reported by'] : values[i][7]
-          ]]);
+
+      for (var i = 1; i < allData.length; i++) {
+        if (String(allData[i][colMap['user name'] !== undefined ? colMap['user name'] : 1]).trim() === oldUserName) {
+          var row = allData[i].slice();
+          var fieldMap = {
+            'user': 'user', 'user name': 'user name', 'password': 'password',
+            'role': 'role', 'branch': 'branch', 'department': 'department',
+            'Page access': 'Page access', 'Reported by': 'Reported by', 'Group Heads': 'Group Heads'
+          };
+          Object.keys(fieldMap).forEach(function(field) {
+            if (newValue[field] !== undefined && colMap[field] !== undefined) {
+              row[colMap[field]] = newValue[field];
+            }
+          });
+          sheet.getRange(i + 1, 1, 1, numCols).setValues([row]);
           updated = true;
           break;
         }
@@ -783,4 +839,147 @@ function handleBatchCreate(sheet, dataArray) {
   });
   sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAdd.length, headers.length).setValues(rowsToAdd);
   return { success: true, count: rowsToAdd.length };
+}
+
+function handleBatchUpdate(sheet, request) {
+  var sns = request.sns;
+  if (!sns || !Array.isArray(sns)) throw new Error('Missing SNS for batch update.');
+
+  var range = sheet.getDataRange();
+  var data = range.getValues();
+  var headers = data[0].map(function(h) { return String(h).trim(); });
+  var snIndex = headers.indexOf('SN');
+  if (snIndex === -1) throw new Error('SN column not found in sheet.');
+
+  var snToUpdate = {};
+  sns.forEach(function(sn) { snToUpdate[String(sn)] = true; });
+
+  var updatedCount = 0;
+  for (var i = 1; i < data.length; i++) {
+    var sn = String(data[i][snIndex]);
+    if (snToUpdate[sn]) {
+      headers.forEach(function(header, idx) {
+        var colNum = idx + 1;
+        
+        // PRIMARY APPROVAL
+        if (colNum >= 14 && colNum <= 17) {
+          if (header === 'Approval Timestamp' && request.timestamp && !request.isDeleteAction) {
+            data[i][idx] = request.timestamp;
+          } else if (header === 'Status' && request.status && !request.isDeleteAction) {
+            data[i][idx] = request.status;
+          } else if (header === 'Approval / Reject - Remark' && request.remark && !request.isDeleteAction) {
+            data[i][idx] = request.remark;
+          }
+        }
+
+        // DELETION APPROVAL
+        if (colNum >= 19 && colNum <= 22) {
+          if (header === 'Approval1 Timestamp' && request.timestamp && request.isDeleteAction) {
+            data[i][idx] = request.timestamp;
+          } else if (header === 'Status1' && request.isDeleteAction) {
+            var s1Value = (request.deleteStatus === 'PENDING_DELETE') ? 'PENDING' : (request.status || 'DELETED');
+            data[i][idx] = s1Value;
+          } else if (header === 'Approval / Reject - Remark1' && request.remark && request.isDeleteAction) {
+            data[i][idx] = request.remark;
+          }
+        }
+
+        // ALWAYS UPDATE DELETE STATUS
+        if (header === 'Delete Status') {
+          data[i][idx] = request.deleteStatus || 'ACTIVE';
+        }
+      });
+      updatedCount++;
+    }
+  }
+
+  range.setValues(data);
+  return { success: true, count: updatedCount };
+}
+
+function handleArchive(sheet, archiveDate) {
+  if (!archiveDate) throw new Error('Archive date is required.');
+  
+  var targetDate = new Date(archiveDate);
+  targetDate.setHours(0, 0, 0, 0);
+
+  var range = sheet.getDataRange();
+  var data = range.getValues();
+  var headers = data[0].map(function(h) { return String(h).trim(); });
+  
+  var dateIdx = headers.indexOf('Date');
+  var flowIdx = headers.indexOf('Flow');
+  var amountIdx = headers.indexOf('Amount (INR)');
+  var statusIdx = headers.indexOf('Status');
+  var deleteStatusIdx = headers.indexOf('Delete Status');
+
+  if (dateIdx === -1 || flowIdx === -1 || amountIdx === -1) {
+    throw new Error('Required columns (Date, Flow, Amount) not found.');
+  }
+
+  var inflowSum = 0;
+  var outflowSum = 0;
+  var rowsToDelete = [];
+
+  for (var i = 1; i < data.length; i++) {
+    var rowValue = data[i][dateIdx];
+    var rowDate = rowValue instanceof Date ? rowValue : new Date(rowValue);
+    if (isNaN(rowDate.getTime())) continue;
+    
+    var compareDate = new Date(rowDate);
+    compareDate.setHours(0, 0, 0, 0);
+
+    if (compareDate < targetDate) {
+      var isDeleted = String(data[i][deleteStatusIdx]) === 'DELETED';
+      var isApproved = String(data[i][statusIdx]) === 'APPROVED';
+      var isFlowIn = String(data[i][flowIdx]) === 'IN';
+
+      if (!isDeleted && (isApproved || isFlowIn)) {
+        var amount = parseFloat(data[i][amountIdx]) || 0;
+        if (isFlowIn) inflowSum += amount;
+        else outflowSum += amount;
+      }
+      rowsToDelete.push(i + 1);
+    }
+  }
+
+  if (rowsToDelete.length === 0) {
+    return { success: true, message: 'No entries found before ' + archiveDate, count: 0 };
+  }
+
+  var openingBalance = inflowSum - outflowSum;
+
+  for (var k = rowsToDelete.length - 1; k >= 0; k--) {
+    sheet.deleteRow(rowsToDelete[k]);
+  }
+
+  var timestamp = new Date();
+  var sn = generateSerialNumber(sheet, timestamp);
+  
+  var newRow = headers.map(function(col) {
+    switch (col) {
+      case 'Timestamp': return timestamp;
+      case 'SN': return sn;
+      case 'Date': return archiveDate;
+      case 'Group Head': return 'OPENING BALANCE';
+      case 'Expense Head': return 'ARCHIVED SUMMARY';
+      case 'Amount (INR)': return Math.abs(openingBalance);
+      case 'Flow': return openingBalance >= 0 ? 'IN' : 'OUT';
+      case 'Description / Reason': return 'Consolidated balance from archived data before ' + archiveDate;
+      case 'user': return 'System';
+      case 'Status': return 'APPROVED';
+      case 'Delete Status': return 'ACTIVE';
+      case 'Branch': return 'Head Office';
+      default: return '';
+    }
+  });
+
+  sheet.appendRow(newRow);
+
+  return { 
+    success: true, 
+    message: 'Archived ' + rowsToDelete.length + ' entries.',
+    details: 'Opening Balance: ' + openingBalance,
+    deletedCount: rowsToDelete.length                
+  };
 }

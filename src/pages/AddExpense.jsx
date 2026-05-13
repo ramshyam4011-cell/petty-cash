@@ -46,6 +46,8 @@ export default function AddExpense() {
     amount: '',
     receivedFrom: '',
     branch: '',
+    expenseHead: '',
+    subHead: '',
   });
 
   const [showFormModal, setShowFormModal] = useState(false);
@@ -71,8 +73,15 @@ export default function AddExpense() {
 
   useEffect(() => { fetchExpenses(); fetchMasterData(); }, []);
 
-  // Cascading
-  const groupHeads = useMemo(() => [...new Set(masterData.map(d => d['Group Head'] || d['Group Heads']).filter(Boolean))].sort(), [masterData]);
+  // Cascading — filter group heads by user's assigned list (empty = all)
+  const allGroupHeads = useMemo(() => [...new Set(masterData.map(d => d['Group Head'] || d['Group Heads']).filter(Boolean))].sort(), [masterData]);
+
+  const groupHeads = useMemo(() => {
+    const userGroupHeads = user?.groupHeads || [];
+    if (userGroupHeads.length === 0) return allGroupHeads;
+    return allGroupHeads.filter(g => userGroupHeads.includes(g));
+  }, [allGroupHeads, user]);
+
   const expenseHeads = useMemo(() => {
     if (!expenseForm.groupHead) return [];
     return [...new Set(masterData.filter(d => (d['Group Head'] || d['Group Heads']) === expenseForm.groupHead).map(d => d['Expense Head'] || d['Expense Heads']).filter(Boolean))].sort();
@@ -89,6 +98,16 @@ export default function AddExpense() {
   const branches = useMemo(() => {
     return [...new Set(masterData.map(d => d['Branch'] || d['Branches']).filter(Boolean))].sort();
   }, [masterData]);
+
+  // Cascading for RECEIVE form — Expense Heads (all groups, not user-restricted)
+  const receiveExpenseHeads = useMemo(() => {
+    return [...new Set(masterData.map(d => d['Expense Head'] || d['Expense Heads']).filter(Boolean))].sort();
+  }, [masterData]);
+
+  const receiveSubHeads = useMemo(() => {
+    if (!receiveForm.expenseHead) return [];
+    return [...new Set(masterData.filter(d => (d['Expense Head'] || d['Expense Heads']) === receiveForm.expenseHead).map(d => d['Sub Head'] || d['Sub Heads']).filter(Boolean))].sort();
+  }, [masterData, receiveForm.expenseHead]);
 
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -148,7 +167,9 @@ export default function AddExpense() {
         payload = {
           'Date': receiveForm.valueDate,
           'Payment mode': receiveForm.transactionType,
-          'Group Head': 'INCOME', 'Expense Head': 'RECEIVE', 'Sub Head': '-',
+          'Group Head': 'INCOME',
+          'Expense Head': receiveForm.expenseHead || 'RECEIVE',
+          'Sub Head': receiveForm.subHead || '-',
           'Amount (INR)': parseFloat(receiveForm.amount),
           'Paid To': receiveForm.receivedFrom || user?.id || 'admin',
           'Branch': receiveForm.branch,
@@ -189,7 +210,7 @@ export default function AddExpense() {
         setShowFormModal(false);
         fetchExpenses();
         setExpenseForm({...expenseForm, amount:'', description:'', paidTo:''});
-        setReceiveForm({...receiveForm, amount:'', receivedFrom:''});
+        setReceiveForm({...receiveForm, amount:'', receivedFrom:'', expenseHead:'', subHead:''});
         setSelectedFiles([]);
       } else {
         throw new Error(json.error || 'Server error');
@@ -207,7 +228,9 @@ export default function AddExpense() {
     const userId = user?.id || '';
     return expenses.filter(e => {
       if (role === 'SUPER_ADMIN') return true;
-      if (role === 'ADMIN') return e['user'] === userId || e['Reported by'] === userId;
+      // ADMIN: only see their OWN entries + entries reported BY them
+      if (role === 'ADMIN') return e['Reported by'] === userId || e['user'] === userId;
+      // USER: only see their own entries
       return e['user'] === userId;
     });
   }, [expenses, user]);
@@ -430,8 +453,8 @@ export default function AddExpense() {
 
       {/* Form Modal */}
       {showFormModal && createPortal(
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm sm:backdrop-blur-md flex items-end sm:items-center justify-center z-[999] sm:p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-xl w-full max-w-2xl flex flex-col overflow-hidden border border-slate-200 h-[90vh] sm:h-auto">
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md flex items-end sm:items-center justify-center z-[9999] sm:p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-xl w-full max-w-2xl flex flex-col overflow-hidden border border-slate-200 h-[90vh] sm:h-auto sm:max-h-[92vh]">
             <div className="px-4 sm:px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
               <h2 className="font-black text-slate-900 uppercase tracking-tight text-sm sm:text-base">{activeType === 'RECEIVE' ? 'Inflow Registration' : 'Expense Registration'}</h2>
               <button onClick={()=>setShowFormModal(false)} className="p-2 hover:bg-slate-200 rounded-full transition-colors"><X size={20} className="text-slate-500"/></button>
@@ -510,10 +533,57 @@ export default function AddExpense() {
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Inflow Type</label>
-                    <select disabled={submitting} value={receiveForm.transactionType} onChange={e=>setReceiveForm({...receiveForm, transactionType:e.target.value})} className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:text-slate-400">
+                    <select
+                      disabled={submitting}
+                      value={receiveForm.transactionType}
+                      onChange={e => {
+                        const mode = e.target.value;
+                        const isTransfer = mode === 'Transfer';
+                        setReceiveForm({
+                          ...receiveForm,
+                          transactionType: mode,
+                          expenseHead: isTransfer ? 'Cash at Home' : '',
+                          subHead: ''
+                        });
+                      }}
+                      className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:text-slate-400"
+                    >
                       {receiveModes.map(m=><option key={m} value={m}>{m}</option>)}
                     </select>
                   </div>
+
+                  {/* Expense Head + Sub Head — only shown for Transfer mode */}
+                  {receiveForm.transactionType === 'Transfer' && (
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                          Expense Head
+                          <span className="ml-2 text-[8px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-100">AUTO</span>
+                        </label>
+                        <select
+                          disabled={submitting || true}
+                          value={receiveForm.expenseHead}
+                          onChange={e => setReceiveForm({...receiveForm, expenseHead: e.target.value, subHead: ''})}
+                          className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:text-slate-400"
+                        >
+                          <option value="">Select Expense Head</option>
+                          {receiveExpenseHeads.map(eh => <option key={eh} value={eh}>{eh}</option>)}
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sub Head</label>
+                        <select
+                          disabled={submitting || !receiveForm.expenseHead}
+                          value={receiveForm.subHead}
+                          onChange={e => setReceiveForm({...receiveForm, subHead: e.target.value})}
+                          className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:text-slate-400"
+                        >
+                          <option value="">{receiveForm.expenseHead ? 'Select Sub Head' : 'Select Expense Head first'}</option>
+                          {receiveSubHeads.map(sh => <option key={sh} value={sh}>{sh}</option>)}
+                        </select>
+                      </div>
+                    </>
+                  )}
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Amount (₹)</label>
                     <input disabled={submitting} type="number" value={receiveForm.amount} onChange={e=>setReceiveForm({...receiveForm, amount:e.target.value})} className="w-full border border-slate-300 rounded px-3 py-2 text-sm font-bold focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:text-slate-400" placeholder="0.00" />
@@ -599,5 +669,5 @@ export default function AddExpense() {
   );
 }
 
-const receiveModes = ['Cash Received (+)', 'Bank Transfer (+)', 'Cheque Received (+)', 'Online Received (+)', 'UPI Received (+)'];
-const expenseModes = ['Cash', 'Bank Transfer', 'Cheque', 'Online', 'UPI'];
+const receiveModes = ['Cash Received (+)', 'Transfer', 'Online Received (+)', 'UPI Received (+)'];
+const expenseModes = ['Cash', 'Transfer', 'Cheque', 'Online', 'UPI'];

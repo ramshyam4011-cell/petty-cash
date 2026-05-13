@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
-import logo from '../Assets/logo.png';
 const APPSCRIPT_URL = import.meta.env.VITE_APPSCRIPT_URL;
 
 const Login = () => {
@@ -38,7 +37,8 @@ const Login = () => {
         branch: row['branch'] || '',
         department: row['department'] || '',
         pageAccess: row['Page access'] ? row['Page access'].split(',').map(s => s.trim()) : [],
-        reportedBy: row['Reported by'] || ''   // admin this user reports to
+        reportedBy: row['Reported by'] || '',
+        groupHeads: row['Group Heads'] ? row['Group Heads'].split(',').map(s => s.trim()).filter(Boolean) : []
       }));
 
       const matchedUser = users.find(
@@ -84,9 +84,6 @@ const Login = () => {
             
             {/* Header Section */}
             <div className="text-center space-y-3 relative">
-              <div className="inline-flex items-center justify-center w-20 h-20 mb-4 transform hover:scale-110 transition-transform duration-300">
-                <img src={logo} alt="Logo" className="w-full h-full object-contain" />
-              </div>
               <h1 className="text-3xl font-semibold text-slate-900 ">
                 Petty <span className="text-blue-600">Cash</span>
               </h1>

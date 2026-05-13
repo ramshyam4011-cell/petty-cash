@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Calendar, Wallet, Clock, TrendingUp, TrendingDown,
-  ArrowUpDown, RefreshCcw, Download, Filter, ChevronRight, BarChart3, PieChart as PieIcon, LineChart as LineIcon, Search, FilterX
+  ArrowUpDown, RefreshCcw, Download, Filter, ChevronRight, BarChart3, PieChart as PieIcon, LineChart as LineIcon, Search, FilterX, Home
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
@@ -83,7 +83,25 @@ export default function AdminDashboard() {
     const totalPending = filteredRecords.filter(r => r.Status === 'PENDING' && r['Delete Status'] === 'ACTIVE').reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
     const totalPendingDelete = filteredRecords.filter(r => r['Delete Status'] === 'PENDING_DELETE').reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
 
-    return { totalIn, totalOut, balance: totalIn - totalOut, totalPending, totalPendingDelete };
+    // Cash at Home balance:
+    // +: Approved OUT expenses with Expense Head = 'Cash at Home' (money dispatched home)
+    // -: Approved IN receives with Expense Head = 'Cash at Home' (money returned from home via Transfer)
+    const cashAtHomeSent = activeApproved
+      .filter(r => r.Flow === 'OUT' && r['Expense Head'] === 'Cash at Home')
+      .reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
+    const cashAtHomeReturned = activeApproved
+      .filter(r => r.Flow === 'IN' && r['Expense Head'] === 'Cash at Home')
+      .reduce((s, r) => s + (parseFloat(r['Amount (INR)']) || 0), 0);
+    const cashAtHome = cashAtHomeSent - cashAtHomeReturned;
+
+    return { totalIn, totalOut, balance: totalIn - totalOut, totalPending, totalPendingDelete, cashAtHome, cashAtHomeSent, cashAtHomeReturned };
+  }, [filteredRecords]);
+
+  const cashAtHomeRecords = useMemo(() => {
+    return filteredRecords
+      .filter(r => r['Expense Head'] === 'Cash at Home' && r['Delete Status'] === 'ACTIVE' && r.Status === 'APPROVED')
+      .sort((a, b) => (b.Date || '').localeCompare(a.Date || ''))
+      .slice(0, 6);
   }, [filteredRecords]);
 
   // Chart Data Preparation
@@ -244,6 +262,79 @@ export default function AdminDashboard() {
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-rose-500"><ArrowUpDown size={48}/></div>
           <p className="text-[9px] font-bold text-rose-600 uppercase tracking-widest mb-1">Pending Del.</p>
           <p className="text-lg font-bold text-rose-700">{formatCurrency(stats.totalPendingDelete)}</p>
+        </div>
+      </div>
+
+      {/* Cash at Home Section */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+          <Home size={14} className="text-slate-500" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Cash at Home</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-5">
+
+          {/* Left: Balance Summary */}
+          <div className="sm:col-span-2 p-5 border-b sm:border-b-0 sm:border-r border-slate-100 flex flex-col justify-between gap-4">
+            <div>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Current Balance</p>
+              <p className={`text-3xl font-black tracking-tight ${stats.cashAtHome > 0 ? 'text-slate-900' : 'text-emerald-600'}`}>
+                {formatCurrency(stats.cashAtHome)}
+              </p>
+              <p className="text-[10px] font-bold text-slate-400 mt-1">
+                {stats.cashAtHome > 0 ? 'Outstanding — not yet returned' : '✓ Fully reconciled'}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between py-2 border-t border-slate-100">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                  <span className="text-[10px] font-bold text-slate-500">Dispatched</span>
+                </div>
+                <span className="text-xs font-black text-slate-700">{formatCurrency(stats.cashAtHomeSent ?? 0)}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-t border-slate-100">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span className="text-[10px] font-bold text-slate-500">Returned</span>
+                </div>
+                <span className="text-xs font-black text-slate-700">{formatCurrency(stats.cashAtHomeReturned ?? 0)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Recent Entries */}
+          <div className="sm:col-span-3 p-3">
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-2 mb-2">Recent Entries</p>
+            {cashAtHomeRecords.length === 0 ? (
+              <div className="flex items-center justify-center h-24 text-slate-300">
+                <p className="text-[10px] font-bold uppercase">No entries found</p>
+              </div>
+            ) : (
+              <div className="space-y-0.5">
+                {cashAtHomeRecords.map((r, i) => {
+                  const isIN = r.Flow === 'IN';
+                  return (
+                    <div key={i} className="flex items-center justify-between px-2 py-2.5 rounded-lg hover:bg-slate-50 transition-colors group">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isIN ? 'bg-emerald-50' : 'bg-rose-50'}`}>
+                          {isIN
+                            ? <TrendingUp size={10} className="text-emerald-500" />
+                            : <TrendingDown size={10} className="text-rose-500" />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-800 truncate">{r['Sub Head'] || r['Description / Reason'] || r['Paid To'] || '—'}</p>
+                          <p className="text-[9px] font-bold text-slate-400">{formatDate(r.Date)} · {r['user']}</p>
+                        </div>
+                      </div>
+                      <span className={`text-xs font-black shrink-0 ml-3 ${isIN ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {isIN ? '+' : '-'}{formatCurrency(r['Amount (INR)'])}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

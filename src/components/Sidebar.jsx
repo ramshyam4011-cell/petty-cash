@@ -17,7 +17,6 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import logo from '../Assets/logo.png';
 
 const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
   const navigate = useNavigate();
@@ -77,13 +76,10 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
 
         <div className="flex flex-col h-full overflow-hidden">
           
-          {/* Header/Logo Section */}
+          {/* Header Section */}
           <div className={`h-24 flex items-center border-b border-slate-100 bg-white sticky top-0 z-10 transition-all duration-500 px-5 
             ${isCollapsed ? 'lg:justify-center justify-between' : 'justify-between'}`}>
             <div className="flex items-center gap-3 group cursor-pointer overflow-hidden min-w-0">
-              <div className="w-11 h-11 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-all duration-500">
-                <img src={logo} alt="Logo" className="w-full h-full object-contain" />
-              </div>
               <div className={`flex flex-col animate-in fade-in slide-in-from-left-4 duration-500 overflow-hidden ${isCollapsed ? 'lg:hidden' : ''}`}>
                 <span className="text-2xl font-semibold text-slate-900  leading-none truncate">Petty Cash</span>
                 <span className="text-[10px] font-semibold text-blue-600   mt-2 truncate">Enterprise</span>
