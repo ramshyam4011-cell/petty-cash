@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import {
-  Check, X, Pause, Trash2, RotateCcw, ShieldCheck, ShieldAlert, AlertTriangle, RefreshCcw, User, Building2, Paperclip, FileText, Image as ImageIcon, Lock
+  Check, X, Pause, Trash2, RotateCcw, ShieldCheck, ShieldAlert, AlertTriangle, RefreshCcw, User, Building2, Paperclip, FileText, Image as ImageIcon, Lock, TrendingUp
 } from 'lucide-react';
 import { formatCurrency, formatDate, getGoogleSheetTimestamp } from '../utils/helpers';
 import { useAuthStore } from '../store/authStore';
@@ -13,6 +13,12 @@ const EXPENSE_TABS = [
   { key: 'hold',     label: 'Hold',     color: 'orange'  },
   { key: 'rejected', label: 'Rejected', color: 'rose'    },
   { key: 'history',  label: 'History',  color: 'slate'   },
+];
+
+const INFLOW_TABS = [
+  { key: 'inflow-pending',  label: 'Pending',  color: 'emerald' },
+  { key: 'inflow-approved', label: 'Approved', color: 'slate'   },
+  { key: 'inflow-rejected', label: 'Rejected', color: 'rose'    },
 ];
 
 const DELETE_TABS = [
@@ -27,6 +33,7 @@ export default function ApprovalPanel() {
 
   const [mainTab,    setMainTab]    = useState('expense');   
   const [expenseTab, setExpenseTab] = useState('pending');
+  const [inflowTab,  setInflowTab]  = useState('inflow-pending');
   const [deleteTab,  setDeleteTab]  = useState('delete-pending');
 
   const [records,  setRecords]  = useState([]);
@@ -68,10 +75,16 @@ export default function ApprovalPanel() {
   useEffect(() => { fetchRecords(); }, []);
 
   const expenseCounts = {
-    pending:  scopedRecords.filter(r => r.Status === 'PENDING' && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
-    hold:     scopedRecords.filter(r => r.Status === 'HOLD' && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
+    pending:  scopedRecords.filter(r => r.Status === 'PENDING'  && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
+    hold:     scopedRecords.filter(r => r.Status === 'HOLD'     && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
     rejected: scopedRecords.filter(r => r.Status === 'REJECTED' && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
     history:  scopedRecords.filter(r => r.Status === 'APPROVED' && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
+  };
+
+  const inflowCounts = {
+    'inflow-pending':  scopedRecords.filter(r => r.Flow === 'IN' && r['Payment mode'] === 'Cash Received (+)' && r.Status === 'PENDING'  && r['Delete Status'] !== 'DELETED').length,
+    'inflow-approved': scopedRecords.filter(r => r.Flow === 'IN' && r['Payment mode'] === 'Cash Received (+)' && r.Status === 'APPROVED' && r['Delete Status'] !== 'DELETED').length,
+    'inflow-rejected': scopedRecords.filter(r => r.Flow === 'IN' && r['Payment mode'] === 'Cash Received (+)' && r.Status === 'REJECTED' && r['Delete Status'] !== 'DELETED').length,
   };
 
   const deleteCounts = {
@@ -82,11 +95,18 @@ export default function ApprovalPanel() {
   const filteredRecords = scopedRecords.filter(r => {
     if (mainTab === 'expense') {
       if (r['Delete Status'] === 'DELETED') return false;
-      if (r.Flow === 'IN') return false; 
+      if (r.Flow === 'IN') return false;
       if (expenseTab === 'pending')  return r.Status === 'PENDING';
       if (expenseTab === 'hold')     return r.Status === 'HOLD';
       if (expenseTab === 'rejected') return r.Status === 'REJECTED';
       if (expenseTab === 'history')  return r.Status === 'APPROVED';
+    } else if (mainTab === 'inflow') {
+      if (r['Delete Status'] === 'DELETED') return false;
+      if (r.Flow !== 'IN') return false;
+      if (r['Payment mode'] !== 'Cash Received (+)') return false;  // only cash receives
+      if (inflowTab === 'inflow-pending')  return r.Status === 'PENDING';
+      if (inflowTab === 'inflow-approved') return r.Status === 'APPROVED';
+      if (inflowTab === 'inflow-rejected') return r.Status === 'REJECTED';
     } else {
       if (deleteTab === 'delete-pending') return r['Delete Status'] === 'PENDING_DELETE';
       if (deleteTab === 'deleted')        return r['Delete Status'] === 'DELETED';
@@ -178,6 +198,9 @@ export default function ApprovalPanel() {
         <button onClick={() => setMainTab('expense')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-xs font-black flex items-center justify-center gap-2 transition-all whitespace-nowrap ${mainTab === 'expense' ? 'bg-white text-blue-600 shadow-md' : 'text-slate-500'}`}>
           <ShieldCheck size={16} /> Expense {expenseCounts.pending > 0 && <span className="bg-blue-600 text-white text-[9px] px-1.5 py-0.5 rounded-full">{expenseCounts.pending}</span>}
         </button>
+        <button onClick={() => setMainTab('inflow')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-xs font-black flex items-center justify-center gap-2 transition-all whitespace-nowrap ${mainTab === 'inflow' ? 'bg-white text-emerald-600 shadow-md' : 'text-slate-500'}`}>
+          <TrendingUp size={16} /> Cash Approval {inflowCounts['inflow-pending'] > 0 && <span className="bg-emerald-600 text-white text-[9px] px-1.5 py-0.5 rounded-full">{inflowCounts['inflow-pending']}</span>}
+        </button>
         <button onClick={() => setMainTab('delete')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-xs font-black flex items-center justify-center gap-2 transition-all whitespace-nowrap ${mainTab === 'delete' ? 'bg-white text-rose-600 shadow-md' : 'text-slate-500'}`}>
           <ShieldAlert size={16} /> Deletion {deleteCounts['delete-pending'] > 0 && <span className="bg-rose-600 text-white text-[9px] px-1.5 py-0.5 rounded-full">{deleteCounts['delete-pending']}</span>}
         </button>
@@ -185,11 +208,16 @@ export default function ApprovalPanel() {
 
       {/* Sub-tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto no-scrollbar scroll-smooth">
-        {(mainTab === 'expense' ? EXPENSE_TABS : DELETE_TABS).map(tab => {
-          const isActive = (mainTab === 'expense' ? expenseTab : deleteTab) === tab.key;
+        {(mainTab === 'expense' ? EXPENSE_TABS : mainTab === 'inflow' ? INFLOW_TABS : DELETE_TABS).map(tab => {
+          const activeKey = mainTab === 'expense' ? expenseTab : mainTab === 'inflow' ? inflowTab : deleteTab;
+          const isActive = activeKey === tab.key;
           return (
-            <button key={tab.key} onClick={() => mainTab === 'expense' ? setExpenseTab(tab.key) : setDeleteTab(tab.key)} className={`px-4 py-3 text-[10px] font-black border-b-2 transition-all whitespace-nowrap uppercase tracking-widest ${isActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}>
-              {tab.label} ({(mainTab === 'expense' ? expenseCounts : deleteCounts)[tab.key]})
+            <button
+              key={tab.key}
+              onClick={() => mainTab === 'expense' ? setExpenseTab(tab.key) : mainTab === 'inflow' ? setInflowTab(tab.key) : setDeleteTab(tab.key)}
+              className={`px-4 py-3 text-[10px] font-black border-b-2 transition-all whitespace-nowrap uppercase tracking-widest ${isActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
+            >
+              {tab.label} ({(mainTab === 'expense' ? expenseCounts : mainTab === 'inflow' ? inflowCounts : deleteCounts)[tab.key]})
             </button>
           );
         })}
@@ -205,7 +233,7 @@ export default function ApprovalPanel() {
             <button onClick={() => setSelectedSns([])} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase">Clear</button>
           </div>
           <div className="flex items-center gap-2">
-            {mainTab === 'expense' ? (
+            {(mainTab === 'expense' || mainTab === 'inflow') ? (
               <>
                 <button onClick={() => handleBulkAction('APPROVED')} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase hover:bg-emerald-700 transition-all shadow-md shadow-emerald-200 active:scale-95">
                   <Check size={14} /> Approve All
@@ -258,7 +286,7 @@ export default function ApprovalPanel() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredRecords.map((r, idx) => {
-                    const isHistory = (expenseTab === 'history' || deleteTab === 'deleted');
+                    const isHistory = (expenseTab === 'history' || deleteTab === 'deleted' || inflowTab === 'inflow-approved' || inflowTab === 'inflow-rejected');
                     return (
                       <tr key={idx} className={`hover:bg-slate-50/50 transition-colors ${selectedSns.includes(r.SN) ? 'bg-blue-50/50' : ''}`}>
                         <td className="px-6 py-4">
@@ -316,7 +344,7 @@ export default function ApprovalPanel() {
             {/* Mobile Card List View */}
             <div className="lg:hidden divide-y divide-slate-100">
               {filteredRecords.map((r, idx) => {
-                const isHistory = (expenseTab === 'history' || deleteTab === 'deleted');
+                const isHistory = (expenseTab === 'history' || deleteTab === 'deleted' || inflowTab === 'inflow-approved' || inflowTab === 'inflow-rejected');
                 return (
                   <div key={idx} className="p-4 space-y-3 active:bg-slate-50 transition-colors">
                     <div className="flex justify-between items-start">
@@ -388,7 +416,7 @@ export default function ApprovalPanel() {
 }
 
 const ApprovalActions = ({ record, canApprove, mainTab, onAction, onOpenModal, isMobile }) => {
-  if (mainTab === 'expense') {
+  if (mainTab === 'expense' || mainTab === 'inflow') {
     if (!canApprove(record)) {
       return (
         <span className="flex items-center gap-1 text-[8px] font-black text-slate-400 uppercase px-2 py-1 bg-slate-50 border border-slate-200 rounded-full">
@@ -400,7 +428,9 @@ const ApprovalActions = ({ record, canApprove, mainTab, onAction, onOpenModal, i
       <div className="flex gap-2">
         <button onClick={() => onAction(record, 'APPROVED')} className={`p-2 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all ${isMobile ? 'flex-1' : ''}`}><Check size={16} /></button>
         <button onClick={() => onOpenModal(record, 'REJECT')} className={`p-2 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-600 hover:text-white transition-all ${isMobile ? 'flex-1' : ''}`}><X size={16} /></button>
-        <button onClick={() => onOpenModal(record, 'HOLD')} className={`p-2 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-600 hover:text-white transition-all ${isMobile ? 'flex-1' : ''}`}><Pause size={16} /></button>
+        {mainTab === 'expense' && (
+          <button onClick={() => onOpenModal(record, 'HOLD')} className={`p-2 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-600 hover:text-white transition-all ${isMobile ? 'flex-1' : ''}`}><Pause size={16} /></button>
+        )}
       </div>
     );
   }

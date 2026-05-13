@@ -100,7 +100,11 @@ export default function AdminDashboard() {
   const cashAtHomeRecords = useMemo(() => {
     return filteredRecords
       .filter(r => r['Expense Head'] === 'Cash at Home' && r['Delete Status'] === 'ACTIVE' && r.Status === 'APPROVED')
-      .sort((a, b) => (b.Date || '').localeCompare(a.Date || ''))
+      .sort((a, b) => {
+        const dateCmp = (b.Date || '').localeCompare(a.Date || '');
+        if (dateCmp !== 0) return dateCmp;
+        return (b.SN || '').localeCompare(a.SN || '');  // same date → latest SN (time) first
+      })
       .slice(0, 6);
   }, [filteredRecords]);
 
@@ -412,7 +416,10 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {filteredRecords.slice(0, 8).map((r, idx) => {
+              {[...filteredRecords].sort((a, b) => {
+                const dateCmp = (b.Date || '').localeCompare(a.Date || '');
+                return dateCmp !== 0 ? dateCmp : (b.SN || '').localeCompare(a.SN || '');
+              }).slice(0, 8).map((r, idx) => {
                 const isIN = r.Flow === 'IN';
                 return (
                   <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
@@ -451,7 +458,10 @@ export default function AdminDashboard() {
 
         {/* Mobile Card View */}
         <div className="sm:hidden divide-y divide-slate-100">
-          {filteredRecords.slice(0, 5).map((r, idx) => {
+          {[...filteredRecords].sort((a, b) => {
+            const dateCmp = (b.Date || '').localeCompare(a.Date || '');
+            return dateCmp !== 0 ? dateCmp : (b.SN || '').localeCompare(a.SN || '');
+          }).slice(0, 5).map((r, idx) => {
             const isIN = r.Flow === 'IN';
             return (
               <div key={idx} className="p-4 space-y-3 active:bg-slate-50 transition-colors">

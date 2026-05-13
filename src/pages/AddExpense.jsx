@@ -164,6 +164,7 @@ export default function AddExpense() {
           'Flow': 'OUT'
         };
       } else {
+        const isCashReceive = receiveForm.transactionType === 'Cash Received (+)';
         payload = {
           'Date': receiveForm.valueDate,
           'Payment mode': receiveForm.transactionType,
@@ -175,8 +176,9 @@ export default function AddExpense() {
           'Branch': receiveForm.branch,
           'Description / Reason': receiveForm.receivedFrom,
           'user': user?.id || 'admin',
-          'Status': 'APPROVED',
-          'Approval / Reject - Remark': 'Auto-approved',
+          // Cash/Online/UPI receives need approval; Transfer is auto-approved (internal movement)
+          'Status': isCashReceive ? 'PENDING' : 'APPROVED',
+          'Approval / Reject - Remark': isCashReceive ? '' : 'Auto-approved',
           'Delete Status': 'ACTIVE',
           'Flow': 'IN',
           'Reported by': user?.reportedBy || ''
