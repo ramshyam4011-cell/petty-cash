@@ -325,6 +325,7 @@ export default function AddExpense() {
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase text-[10px] tracking-widest font-black">
               <tr>
+                <th className="px-6 py-3">Voucher</th>
                 <th className="px-6 py-3">Date / Flow</th>
                 <th className="px-6 py-3">Category</th>
                 <th className="px-6 py-3">Details</th>
@@ -341,6 +342,12 @@ export default function AddExpense() {
                 const isIN = e.Flow === 'IN';
                 return (
                   <tr key={idx} className={`hover:bg-slate-50/50 transition-all ${isIN ? 'border-l-2 border-emerald-500' : 'border-l-2 border-rose-500'}`}>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-slate-400 leading-none">VCH</span>
+                        <span className="text-xs font-black text-blue-700">#{e.SN?.split('-').pop()}</span>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-[11px] font-bold text-slate-600">{formatDate(e.Date)}</td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
@@ -423,6 +430,7 @@ export default function AddExpense() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">#{e.SN?.split('-').pop()}</span>
                   <div className="flex gap-3">
                     {e['Bill / Receipt'] && (
                       <a href={e['Bill / Receipt'].split(',')[0]} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[10px] font-bold text-blue-600 uppercase">
