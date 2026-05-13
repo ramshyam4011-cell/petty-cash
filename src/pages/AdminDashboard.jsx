@@ -105,7 +105,7 @@ export default function AdminDashboard() {
         if (dateCmp !== 0) return dateCmp;
         return (b.SN || '').localeCompare(a.SN || '');  // same date → latest SN (time) first
       })
-      .slice(0, 6);
+      .slice(0, 10);
   }, [filteredRecords]);
 
   // Chart Data Preparation
@@ -314,7 +314,7 @@ export default function AdminDashboard() {
                 <p className="text-[10px] font-bold uppercase">No entries found</p>
               </div>
             ) : (
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 max-h-[220px] overflow-y-auto pr-1 custom-scrollbar">
                 {cashAtHomeRecords.map((r, i) => {
                   const isIN = r.Flow === 'IN';
                   return (
@@ -404,7 +404,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Desktop Table View */}
-        <div className="hidden sm:block overflow-x-auto">
+        <div className="hidden sm:block overflow-x-auto max-h-[400px] overflow-y-auto custom-scrollbar">
           <table className="w-full text-left text-sm">
             <thead className="bg-white text-slate-400 border-b border-slate-100 uppercase text-[9px] tracking-widest font-bold">
               <tr>

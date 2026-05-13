@@ -164,7 +164,7 @@ export default function AddExpense() {
           'Flow': 'OUT'
         };
       } else {
-        const isCashReceive = receiveForm.transactionType === 'Cash Received (+)';
+        const isCashReceive = receiveForm.transactionType === 'Cash to Receive';
         payload = {
           'Date': receiveForm.valueDate,
           'Payment mode': receiveForm.transactionType,
@@ -671,5 +671,5 @@ export default function AddExpense() {
   );
 }
 
-const receiveModes = ['Cash Received (+)', 'Transfer', 'Online Received (+)', 'UPI Received (+)'];
+const receiveModes = ['Cash Received', 'Cash to Receive', 'Transfer', 'Online Received (+)', 'UPI Received (+)'];
 const expenseModes = ['Cash', 'Transfer', 'Cheque', 'Online', 'UPI'];

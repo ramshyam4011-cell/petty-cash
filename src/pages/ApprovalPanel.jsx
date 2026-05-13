@@ -82,9 +82,9 @@ export default function ApprovalPanel() {
   };
 
   const inflowCounts = {
-    'inflow-pending':  scopedRecords.filter(r => r.Flow === 'IN' && r['Payment mode'] === 'Cash Received (+)' && r.Status === 'PENDING'  && r['Delete Status'] !== 'DELETED').length,
-    'inflow-approved': scopedRecords.filter(r => r.Flow === 'IN' && r['Payment mode'] === 'Cash Received (+)' && r.Status === 'APPROVED' && r['Delete Status'] !== 'DELETED').length,
-    'inflow-rejected': scopedRecords.filter(r => r.Flow === 'IN' && r['Payment mode'] === 'Cash Received (+)' && r.Status === 'REJECTED' && r['Delete Status'] !== 'DELETED').length,
+    'inflow-pending':  scopedRecords.filter(r => r.Flow === 'IN' && (r['Payment mode'] === 'Cash Received' || r['Payment mode'] === 'Cash to Receive') && r.Status === 'PENDING'  && r['Delete Status'] !== 'DELETED').length,
+    'inflow-approved': scopedRecords.filter(r => r.Flow === 'IN' && (r['Payment mode'] === 'Cash Received' || r['Payment mode'] === 'Cash to Receive') && r.Status === 'APPROVED' && r['Delete Status'] !== 'DELETED').length,
+    'inflow-rejected': scopedRecords.filter(r => r.Flow === 'IN' && (r['Payment mode'] === 'Cash Received' || r['Payment mode'] === 'Cash to Receive') && r.Status === 'REJECTED' && r['Delete Status'] !== 'DELETED').length,
   };
 
   const deleteCounts = {
@@ -103,7 +103,8 @@ export default function ApprovalPanel() {
     } else if (mainTab === 'inflow') {
       if (r['Delete Status'] === 'DELETED') return false;
       if (r.Flow !== 'IN') return false;
-      if (r['Payment mode'] !== 'Cash Received (+)') return false;  // only cash receives
+      const isCashMode = r['Payment mode'] === 'Cash Received' || r['Payment mode'] === 'Cash to Receive';
+      if (!isCashMode) return false;  // only cash receives
       if (inflowTab === 'inflow-pending')  return r.Status === 'PENDING';
       if (inflowTab === 'inflow-approved') return r.Status === 'APPROVED';
       if (inflowTab === 'inflow-rejected') return r.Status === 'REJECTED';
@@ -262,7 +263,7 @@ export default function ApprovalPanel() {
         ) : (
           <>
             {/* Desktop Table View */}
-            <div className="hidden lg:block overflow-x-auto">
+            <div className="hidden lg:block overflow-x-auto max-h-[550px] overflow-y-auto custom-scrollbar">
               <table className="w-full text-left text-sm">
                 <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase text-[10px] tracking-widest font-black">
                   <tr>
