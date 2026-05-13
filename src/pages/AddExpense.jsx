@@ -249,7 +249,11 @@ export default function AddExpense() {
         }
         return true;
       })
-      .sort((a, b) => filters.sortOrder === 'asc' ? (a.Date || '').localeCompare(b.Date || '') : (b.Date || '').localeCompare(a.Date || ''));
+      .sort((a, b) => {
+        const dateCmp = (b.Date || '').localeCompare(a.Date || '');
+        if (dateCmp !== 0) return dateCmp;
+        return (b.SN || '').localeCompare(a.SN || '');
+      });
   }, [scopedExpenses, filters]);
 
   const stats = useMemo(() => {
