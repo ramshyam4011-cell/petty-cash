@@ -5,7 +5,7 @@ import {
   Plus, Search, X, Eye, Calendar, Check, ArrowUpDown, TrendingUp, TrendingDown, Trash2, Database, Save, RefreshCcw, Filter, User, Building2, Upload, FileText, Paperclip, Loader2
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { formatDate, formatCurrency, getTodayDate, getGoogleSheetTimestamp, fileToBase64, compressImage } from '../utils/helpers';
+import { formatDate, formatCurrency, getTodayDate, getGoogleSheetTimestamp, fileToBase64, compressImage, formatDateForInput } from '../utils/helpers';
 
 const APPSCRIPT_URL = import.meta.env.VITE_APPSCRIPT_URL;
 
@@ -87,9 +87,17 @@ export default function AddExpense() {
     return [...new Set(masterData.filter(d => (d['Group Head'] || d['Group Heads']) === expenseForm.groupHead).map(d => d['Expense Head'] || d['Expense Heads']).filter(Boolean))].sort();
   }, [masterData, expenseForm.groupHead]);
   const subHeads = useMemo(() => {
-    if (!expenseForm.expenseHead) return [];
-    return [...new Set(masterData.filter(d => (d['Expense Head'] || d['Expense Heads']) === expenseForm.expenseHead).map(d => d['Sub Head'] || d['Sub Heads']).filter(Boolean))].sort();
-  }, [masterData, expenseForm.expenseHead]);
+    if (!expenseForm.groupHead || !expenseForm.expenseHead) return [];
+    return [...new Set(
+      masterData
+        .filter(d => 
+          (d['Group Head'] || d['Group Heads']) === expenseForm.groupHead && 
+          (d['Expense Head'] || d['Expense Heads']) === expenseForm.expenseHead
+        )
+        .map(d => d['Sub Head'] || d['Sub Heads'])
+        .filter(Boolean)
+    )].sort();
+  }, [masterData, expenseForm.groupHead, expenseForm.expenseHead]);
   
   const vendorSuggestions = useMemo(() => {
     return [...new Set(masterData.map(d => d['Vendor'] || d['Vendors'] || d['Vendore']).filter(Boolean))].sort();
@@ -106,7 +114,12 @@ export default function AddExpense() {
 
   const receiveSubHeads = useMemo(() => {
     if (!receiveForm.expenseHead) return [];
-    return [...new Set(masterData.filter(d => (d['Expense Head'] || d['Expense Heads']) === receiveForm.expenseHead).map(d => d['Sub Head'] || d['Sub Heads']).filter(Boolean))].sort();
+    return [...new Set(
+      masterData
+        .filter(d => (d['Expense Head'] || d['Expense Heads']) === receiveForm.expenseHead)
+        .map(d => d['Sub Head'] || d['Sub Heads'])
+        .filter(Boolean)
+    )].sort();
   }, [masterData, receiveForm.expenseHead]);
 
   const handleFileChange = async (e) => {
@@ -240,8 +253,9 @@ export default function AddExpense() {
   const sortedExpenses = useMemo(() => {
     return [...scopedExpenses]
       .filter(e => {
-        if (filters.fromDate && e.Date < filters.fromDate) return false;
-        if (filters.toDate && e.Date > filters.toDate) return false;
+        const eDate = formatDateForInput(e.Date);
+        if (filters.fromDate && eDate < filters.fromDate) return false;
+        if (filters.toDate && eDate > filters.toDate) return false;
         if (filters.flow !== 'ALL' && e.Flow !== filters.flow) return false;
         if (filters.searchQuery) {
           const q = filters.searchQuery.toLowerCase();
@@ -496,7 +510,7 @@ export default function AddExpense() {
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sub Head</label>
                     <select disabled={submitting} value={expenseForm.subHead} onChange={e=>setExpenseForm({...expenseForm, subHead:e.target.value})} className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none disabled:bg-slate-100 disabled:text-slate-400">
-                      <option value="">Select Sub Head</option>
+                      <option value="">{expenseForm.expenseHead ? 'Select Sub Head' : 'Select Expense Head first'}</option>
                       {subHeads.map(sh=><option key={sh} value={sh}>{sh}</option>)}
                     </select>
                   </div>
@@ -675,5 +689,5 @@ export default function AddExpense() {
   );
 }
 
-const receiveModes = ['Cash Received', 'Cash to Receive', 'Transfer', 'Online Received (+)', 'UPI Received (+)'];
-const expenseModes = ['Cash', 'Cash to Receive', 'Transfer', 'Online', 'UPI'];
+const receiveModes = ['Cash Received', 'Cash to Receive', 'Transfer', 'Online/UPI Received (+)'];
+const expenseModes = ['Cash', 'Transfer', 'Online/UPI'];

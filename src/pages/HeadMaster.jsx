@@ -10,7 +10,7 @@ import {
 const APPSCRIPT_URL = import.meta.env.VITE_APPSCRIPT_URL;
 
 /* ── Reusable Column ── */
-function MasterColumn({ icon: Icon, title, items, selected, onSelect, onAdd, onEdit, onDelete, disabled, editingItem, setEditingItem, onCommitEdit, saving, emptyMsg }) {
+function MasterColumn({ icon: Icon, title, items, selected, onSelect, onAdd, onEdit, onDelete, disabled, editingItem, setEditingItem, onCommitEdit, saving, emptyMsg, level }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl flex flex-col shadow-sm overflow-hidden h-[460px]">
       {/* Column header */}
@@ -71,7 +71,7 @@ function MasterColumn({ icon: Icon, title, items, selected, onSelect, onAdd, onE
                   <span className="text-xs font-semibold truncate flex-1">{item}</span>
                   <div className={`flex gap-0.5 transition-all shrink-0 ml-1 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                     <button
-                      onClick={e => { e.stopPropagation(); setEditingItem({ title, oldValue: item, value: item }); }}
+                      onClick={e => { e.stopPropagation(); setEditingItem({ title, level, oldValue: item, value: item }); }}
                       className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded transition-colors"
                     >
                       <Edit2 size={11} />
@@ -94,7 +94,7 @@ function MasterColumn({ icon: Icon, title, items, selected, onSelect, onAdd, onE
 }
 
 /* ── Simple list column (Vendors / Branches) ── */
-function SimpleColumn({ icon: Icon, title, items, onAdd, onEdit, onDelete, editingItem, setEditingItem, onCommitEdit, saving }) {
+function SimpleColumn({ icon: Icon, title, items, onAdd, onEdit, onDelete, editingItem, setEditingItem, onCommitEdit, saving, level }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl flex flex-col shadow-sm overflow-hidden h-[460px]">
       <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
@@ -114,7 +114,7 @@ function SimpleColumn({ icon: Icon, title, items, onAdd, onEdit, onDelete, editi
             <p className="text-[9px] font-bold uppercase tracking-widest">No entries</p>
           </div>
         ) : items.map(item => {
-          const isEditing = editingItem?.oldValue === item && editingItem?.title === title;
+          const isEditing = editingItem?.oldValue === item && editingItem?.level === level;
           return (
             <div key={item} className="group flex items-center justify-between px-3 py-2.5 rounded-lg border border-transparent text-slate-700 hover:bg-slate-50 hover:border-slate-100 transition-all">
               {isEditing ? (
@@ -135,7 +135,7 @@ function SimpleColumn({ icon: Icon, title, items, onAdd, onEdit, onDelete, editi
                 <>
                   <span className="text-xs font-semibold truncate flex-1">{item}</span>
                   <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-all shrink-0 ml-1">
-                    <button onClick={() => setEditingItem({ title, oldValue: item, value: item })} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded transition-colors">
+                    <button onClick={() => setEditingItem({ title, level, oldValue: item, value: item })} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded transition-colors">
                       <Edit2 size={11} />
                     </button>
                     <button onClick={() => onDelete(item)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors">
@@ -271,6 +271,7 @@ export default function HeadMaster() {
   const openAdd = (level) => { setModalLevel(level); setModalValue(''); setShowAddModal(true); };
 
   const colProps = (level) => ({
+    level,
     saving, editingItem, setEditingItem, onCommitEdit: handleInlineEdit,
     onDelete: (v) => handleDelete(level, v),
   });

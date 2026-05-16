@@ -569,21 +569,30 @@ function handleMasterRequests(payload) {
             updatedCount++;
           }
         } else {
-          // Hierarchy logic
-          if (level === 'group' && String(row[0]).trim() === String(oldValue['Group Head'] || '').trim()) {
-            sheet.getRange(i + 1, 1).setValue(newValue['Group Head'] || row[0]);
-            updatedCount++;
-          } else if (level === 'expense' && 
-                     String(row[0]).trim() === String(oldValue['Group Head'] || '').trim() && 
-                     String(row[1]).trim() === String(oldValue['Expense Head'] || '').trim()) {
-            sheet.getRange(i + 1, 2).setValue(newValue['Expense Head'] || row[1]);
-            updatedCount++;
-          } else if (level === 'sub' && 
-                     String(row[0]).trim() === String(oldValue['Group Head'] || '').trim() && 
-                     String(row[1]).trim() === String(oldValue['Expense Head'] || '').trim() && 
-                     String(row[2]).trim() === String(oldValue['Sub Head'] || '').trim()) {
-            sheet.getRange(i + 1, 3).setValue(newValue['Sub Head'] || row[2]);
-            updatedCount++;
+          // Hierarchy matching logic
+          var rowGroup   = String(row[0]).trim();
+          var rowExpense = String(row[1]).trim();
+          var rowSub     = String(row[2]).trim();
+          
+          var oldGroup   = String(oldValue['Group Head']   || oldValue['Group Heads']   || '').trim();
+          var oldExpense = String(oldValue['Expense Head'] || oldValue['Expense Heads'] || '').trim();
+          var oldSub     = String(oldValue['Sub Head']     || oldValue['Sub Heads']     || '').trim();
+
+          var matchesParent = true;
+          if (oldGroup && rowGroup !== oldGroup) matchesParent = false;
+          if (oldExpense && rowExpense !== oldExpense) matchesParent = false;
+
+          if (matchesParent) {
+            if (level === 'group' && rowGroup === oldGroup) {
+              sheet.getRange(i + 1, 1).setValue(newValue['Group Head'] || newValue['Group Heads'] || row[0]);
+              updatedCount++;
+            } else if (level === 'expense' && rowExpense === oldExpense) {
+              sheet.getRange(i + 1, 2).setValue(newValue['Expense Head'] || newValue['Expense Heads'] || row[1]);
+              updatedCount++;
+            } else if (level === 'sub' && rowSub === oldSub) {
+              sheet.getRange(i + 1, 3).setValue(newValue['Sub Head'] || newValue['Sub Heads'] || row[2]);
+              updatedCount++;
+            }
           }
         }
       }
@@ -615,13 +624,13 @@ function handleMasterRequests(payload) {
           var sExpense = String(row[1]).trim();
           var sSub     = String(row[2]).trim();
           var shouldDelete = false;
-
-          if (tGroup && tExpense && tSub) {
-            if (sGroup === tGroup && sExpense === tExpense && sSub === tSub) shouldDelete = true;
-          } else if (tGroup && tExpense) {
-            if (sGroup === tGroup && sExpense === tExpense) shouldDelete = true;
-          } else if (tGroup) {
-            if (sGroup === tGroup) shouldDelete = true;
+          var isMatch = true;
+          if (tGroup && sGroup !== tGroup) isMatch = false;
+          if (tExpense && sExpense !== tExpense) isMatch = false;
+          if (tSub && sSub !== tSub) isMatch = false;
+          
+          if (isMatch && (tGroup || tExpense || tSub)) {
+            shouldDelete = true;
           }
 
           if (shouldDelete) {

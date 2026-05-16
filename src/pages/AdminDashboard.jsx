@@ -10,7 +10,8 @@ import {
 } from 'recharts';
 import { 
   formatCurrency, 
-  formatDate
+  formatDate,
+  formatDateForInput
 } from '../utils/helpers';
 import { useAuthStore } from '../store/authStore';
 
@@ -50,7 +51,7 @@ export default function AdminDashboard() {
 
   const filteredRecords = useMemo(() => {
     return scopedRecords.filter(r => {
-      const date = r.Date ? new Date(r.Date).toISOString().split('T')[0] : '';
+      const date = formatDateForInput(r.Date);
       const matchDateFrom = !filters.from || date >= filters.from;
       const matchDateTo = !filters.to || date <= filters.to;
       
@@ -310,56 +311,19 @@ export default function AdminDashboard() {
         </div>
         <div className="bg-indigo-50 rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden group lg:col-span-3">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-indigo-500"><HandCoins size={48}/></div>
-          <div className="grid grid-cols-1 sm:grid-cols-5 relative z-10">
-            {/* Left: Summary */}
-            <div className="sm:col-span-2 p-6 border-b sm:border-b-0 sm:border-r border-indigo-100 flex flex-col justify-center">
-              <p className="text-[9px] font-bold text-indigo-600 uppercase tracking-widest mb-1">Cash to Receive (Net)</p>
-              <p className="text-2xl font-black text-indigo-700 mb-3">{formatCurrency(stats.ctrNet)}</p>
-              
-              <div className="flex gap-6 border-t border-indigo-100 pt-3 w-full justify-start">
-                <div className="text-left">
-                  <p className="text-[8px] font-black text-slate-400 uppercase">Total Out</p>
-                  <p className="text-xs font-bold text-slate-600">{formatCurrency(stats.ctrOut)}</p>
-                </div>
-                <div className="text-left border-l border-indigo-100 pl-6">
-                  <p className="text-[8px] font-black text-slate-400 uppercase">Total In</p>
-                  <p className="text-xs font-bold text-slate-600">{formatCurrency(stats.ctrIn)}</p>
-                </div>
+          <div className="relative z-10 p-6 flex flex-col justify-center">
+            <p className="text-[9px] font-bold text-indigo-600 uppercase tracking-widest mb-1">Cash to Receive (Net)</p>
+            <p className="text-2xl font-black text-indigo-700 mb-3">{formatCurrency(stats.ctrNet)}</p>
+            
+            <div className="flex gap-6 border-t border-indigo-100 pt-3 w-full justify-start">
+              <div className="text-left">
+                <p className="text-[8px] font-black text-slate-400 uppercase">Total Out</p>
+                <p className="text-xs font-bold text-slate-600">{formatCurrency(stats.ctrOut)}</p>
               </div>
-            </div>
-
-            {/* Right: Recent Entries */}
-            <div className="sm:col-span-3 p-3 bg-white/30">
-              <p className="text-[9px] font-black uppercase tracking-widest text-indigo-400 px-2 mb-2">Recent "Cash to Receive" Entries</p>
-              {cashToReceiveRecords.length === 0 ? (
-                <div className="flex items-center justify-center h-24 text-indigo-300">
-                  <p className="text-[10px] font-bold uppercase">No entries found</p>
-                </div>
-              ) : (
-                <div className="space-y-0.5 h-[135px] overflow-y-auto pr-1 custom-scrollbar">
-                  {cashToReceiveRecords.map((r, i) => {
-                    const isIN = r.Flow === 'IN';
-                    return (
-                      <div key={i} className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-white/50 transition-colors group">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isIN ? 'bg-emerald-50' : 'bg-rose-50'}`}>
-                            {isIN
-                              ? <TrendingUp size={10} className="text-emerald-500" />
-                              : <TrendingDown size={10} className="text-rose-500" />}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-slate-800 truncate">{r['Sub Head'] || r['Description / Reason'] || r['Paid To'] || '—'}</p>
-                            <p className="text-[9px] font-bold text-slate-400">{formatDate(r.Date)} · {r['user']}</p>
-                          </div>
-                        </div>
-                        <span className={`text-xs font-black shrink-0 ml-3 ${isIN ? 'text-emerald-600' : 'text-rose-600'}`}>
-                          {isIN ? '+' : '-'}{formatCurrency(r['Amount (INR)'])}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              <div className="text-left border-l border-indigo-100 pl-6">
+                <p className="text-[8px] font-black text-slate-400 uppercase">Total In</p>
+                <p className="text-xs font-bold text-slate-600">{formatCurrency(stats.ctrIn)}</p>
+              </div>
             </div>
           </div>
         </div>

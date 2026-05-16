@@ -15,6 +15,7 @@ import {
   generateId,
   generateSerialNumber,
   formatDate,
+  formatDateForInput,
   formatCurrency,
   fileToBase64,
   getTodayDate,
@@ -91,10 +92,17 @@ export default function Expenses() {
   }, [activeTab, statusFilter, pendingExpenses, approvedExpenses, rejectedExpenses]);
 
   const filteredExpenses = displayExpenses.filter(expense => {
-    if (filters.fromDate && expense.date < filters.fromDate) return false;
-    if (filters.toDate && expense.date > filters.toDate) return false;
+    const eDate = formatDateForInput(expense.date);
+    if (filters.fromDate && eDate < filters.fromDate) return false;
+    if (filters.toDate && eDate > filters.toDate) return false;
     if (filters.personName && expense.personName !== filters.personName) return false;
-    if (filters.mode && expense.paymentMode !== filters.mode) return false;
+    if (filters.mode) {
+      if (filters.mode === 'Online/UPI') {
+        if (!['Online', 'UPI', 'Online/UPI'].includes(expense.paymentMode)) return false;
+      } else if (expense.paymentMode !== filters.mode) {
+        return false;
+      }
+    }
     if (filters.groupHead && expense.groupHead !== filters.groupHead) return false;
 
     if (filters.searchQuery) {
@@ -351,7 +359,7 @@ export default function Expenses() {
               <option value="Cash">Cash</option>
               <option value="Cheque">Cheque</option>
               <option value="Bank Transfer">Bank Transfer</option>
-              <option value="Online">Online</option>
+              <option value="Online/UPI">Online/UPI</option>
             </select>
             <select
               value={filters.groupHead}
@@ -470,7 +478,7 @@ export default function Expenses() {
                       <option value="Cash">Cash</option>
                       <option value="Cheque">Cheque</option>
                       <option value="Bank Transfer">Bank Transfer</option>
-                      <option value="Online">Online</option>
+                      <option value="Online/UPI">Online/UPI</option>
                     </select>
                   </div>
 

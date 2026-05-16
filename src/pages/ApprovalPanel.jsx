@@ -75,16 +75,16 @@ export default function ApprovalPanel() {
   useEffect(() => { fetchRecords(); }, []);
 
   const expenseCounts = {
-    pending:  scopedRecords.filter(r => r.Status === 'PENDING'  && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
-    hold:     scopedRecords.filter(r => r.Status === 'HOLD'     && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
-    rejected: scopedRecords.filter(r => r.Status === 'REJECTED' && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
-    history:  scopedRecords.filter(r => r.Status === 'APPROVED' && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
+    pending:  scopedRecords.filter(r => r.Status?.toUpperCase() === 'PENDING'  && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
+    hold:     scopedRecords.filter(r => r.Status?.toUpperCase() === 'HOLD'     && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
+    rejected: scopedRecords.filter(r => (r.Status?.toUpperCase() === 'REJECTED' || r.Status?.toUpperCase() === 'REJECT') && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
+    history:  scopedRecords.filter(r => r.Status?.toUpperCase() === 'APPROVED' && r['Delete Status'] !== 'DELETED' && r.Flow !== 'IN').length,
   };
 
   const inflowCounts = {
-    'inflow-pending':  scopedRecords.filter(r => r.Flow === 'IN' && (r['Payment mode'] === 'Cash Received' || r['Payment mode'] === 'Cash to Receive') && r.Status === 'PENDING'  && r['Delete Status'] !== 'DELETED').length,
-    'inflow-approved': scopedRecords.filter(r => r.Flow === 'IN' && (r['Payment mode'] === 'Cash Received' || r['Payment mode'] === 'Cash to Receive') && r.Status === 'APPROVED' && r['Delete Status'] !== 'DELETED').length,
-    'inflow-rejected': scopedRecords.filter(r => r.Flow === 'IN' && (r['Payment mode'] === 'Cash Received' || r['Payment mode'] === 'Cash to Receive') && r.Status === 'REJECTED' && r['Delete Status'] !== 'DELETED').length,
+    'inflow-pending':  scopedRecords.filter(r => r.Flow === 'IN' && (r['Payment mode'] === 'Cash Received' || r['Payment mode'] === 'Cash to Receive') && r.Status?.toUpperCase() === 'PENDING'  && r['Delete Status'] !== 'DELETED').length,
+    'inflow-approved': scopedRecords.filter(r => r.Flow === 'IN' && (r['Payment mode'] === 'Cash Received' || r['Payment mode'] === 'Cash to Receive') && r.Status?.toUpperCase() === 'APPROVED' && r['Delete Status'] !== 'DELETED').length,
+    'inflow-rejected': scopedRecords.filter(r => r.Flow === 'IN' && (r['Payment mode'] === 'Cash Received' || r['Payment mode'] === 'Cash to Receive') && (r.Status?.toUpperCase() === 'REJECTED' || r.Status?.toUpperCase() === 'REJECT') && r['Delete Status'] !== 'DELETED').length,
   };
 
   const deleteCounts = {
@@ -96,18 +96,18 @@ export default function ApprovalPanel() {
     if (mainTab === 'expense') {
       if (r['Delete Status'] === 'DELETED') return false;
       if (r.Flow === 'IN') return false;
-      if (expenseTab === 'pending')  return r.Status === 'PENDING';
-      if (expenseTab === 'hold')     return r.Status === 'HOLD';
-      if (expenseTab === 'rejected') return r.Status === 'REJECTED';
-      if (expenseTab === 'history')  return r.Status === 'APPROVED';
+      if (expenseTab === 'pending')  return r.Status?.toUpperCase() === 'PENDING';
+      if (expenseTab === 'hold')     return r.Status?.toUpperCase() === 'HOLD';
+      if (expenseTab === 'rejected') return r.Status?.toUpperCase() === 'REJECTED' || r.Status?.toUpperCase() === 'REJECT';
+      if (expenseTab === 'history')  return r.Status?.toUpperCase() === 'APPROVED';
     } else if (mainTab === 'inflow') {
       if (r['Delete Status'] === 'DELETED') return false;
       if (r.Flow !== 'IN') return false;
       const isCashMode = r['Payment mode'] === 'Cash Received' || r['Payment mode'] === 'Cash to Receive';
       if (!isCashMode) return false;  // only cash receives
-      if (inflowTab === 'inflow-pending')  return r.Status === 'PENDING';
-      if (inflowTab === 'inflow-approved') return r.Status === 'APPROVED';
-      if (inflowTab === 'inflow-rejected') return r.Status === 'REJECTED';
+      if (inflowTab === 'inflow-pending')  return r.Status?.toUpperCase() === 'PENDING';
+      if (inflowTab === 'inflow-approved') return r.Status?.toUpperCase() === 'APPROVED';
+      if (inflowTab === 'inflow-rejected') return r.Status?.toUpperCase() === 'REJECTED' || r.Status?.toUpperCase() === 'REJECT';
     } else {
       if (deleteTab === 'delete-pending') return r['Delete Status'] === 'PENDING_DELETE';
       if (deleteTab === 'deleted')        return r['Delete Status'] === 'DELETED';
@@ -239,7 +239,7 @@ export default function ApprovalPanel() {
                 <button onClick={() => handleBulkAction('APPROVED')} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase hover:bg-emerald-700 transition-all shadow-md shadow-emerald-200 active:scale-95">
                   <Check size={14} /> Approve All
                 </button>
-                <button onClick={() => { setActionType('REJECT'); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg text-[10px] font-black uppercase hover:bg-rose-700 transition-all shadow-md shadow-rose-200 active:scale-95">
+                <button onClick={() => { setActionType('REJECTED'); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg text-[10px] font-black uppercase hover:bg-rose-700 transition-all shadow-md shadow-rose-200 active:scale-95">
                   <X size={14} /> Reject All
                 </button>
               </>
@@ -406,7 +406,7 @@ export default function ApprovalPanel() {
               <textarea autoFocus value={remark} onChange={e => setRemark(e.target.value)} placeholder="Provide context for this decision..." className="w-full border border-slate-200 rounded-xl p-4 outline-none focus:ring-2 focus:ring-blue-500/10 text-sm font-bold text-slate-700 bg-slate-50 resize-none" rows="6" />
             </div>
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-3 shrink-0">
-              <button onClick={() => selectedSns.length > 0 ? handleBulkAction(actionType) : handleAction(selectedRecord, actionType)} className={`flex-1 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg transition-all active:scale-95 ${actionType==='REJECT'||actionType==='DELETED'?'bg-rose-600 shadow-rose-500/20':'bg-blue-600 shadow-blue-500/20'}`}>Authorize Action</button>
+              <button onClick={() => selectedSns.length > 0 ? handleBulkAction(actionType) : handleAction(selectedRecord, actionType)} className={`flex-1 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg transition-all active:scale-95 ${actionType==='REJECTED'||actionType==='DELETED'?'bg-rose-600 shadow-rose-500/20':'bg-blue-600 shadow-blue-500/20'}`}>Authorize Action</button>
               <button onClick={() => setShowModal(false)} className="hidden sm:block px-6 bg-white border border-slate-300 text-slate-500 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-50">Cancel</button>
             </div>
           </div>
@@ -428,7 +428,7 @@ const ApprovalActions = ({ record, canApprove, mainTab, onAction, onOpenModal, i
     return (
       <div className="flex gap-2">
         <button onClick={() => onAction(record, 'APPROVED')} className={`p-2 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all ${isMobile ? 'flex-1' : ''}`}><Check size={16} /></button>
-        <button onClick={() => onOpenModal(record, 'REJECT')} className={`p-2 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-600 hover:text-white transition-all ${isMobile ? 'flex-1' : ''}`}><X size={16} /></button>
+        <button onClick={() => onOpenModal(record, 'REJECTED')} className={`p-2 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-600 hover:text-white transition-all ${isMobile ? 'flex-1' : ''}`}><X size={16} /></button>
         {mainTab === 'expense' && (
           <button onClick={() => onOpenModal(record, 'HOLD')} className={`p-2 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-600 hover:text-white transition-all ${isMobile ? 'flex-1' : ''}`}><Pause size={16} /></button>
         )}
